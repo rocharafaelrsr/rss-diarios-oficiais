@@ -143,6 +143,7 @@ def test_stored_false_positives_are_removed():
         page=None,
         excerpt=FALSE_LDO,
         matched_terms=["concurso público", "retifica", " ldo "],
+        evidence=FALSE_LDO,
     )
     kept, removed = sanitize_stored_items([item], 2027)
     assert kept == []
