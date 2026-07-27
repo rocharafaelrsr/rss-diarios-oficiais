@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
+from urllib.parse import urlsplit, urlunsplit
 
 from models import Document, FeedItem
 from text_utils import clean_text, normalize, sha256_text
@@ -13,6 +14,13 @@ ACT_MARKER_RE = re.compile(
     r"(?<!\w)(?:LEI|PORTARIA|EDITAL|DECRETO|RESOLUÇÃO|INSTRUÇÃO\s+NORMATIVA|"
     r"ATO|DESPACHO|ORDEM\s+DE\s+SERVIÇO|AVISO)\s+(?:N[º°O]?\s*)?\d",
     flags=re.I | re.U,
+)
+ACT_CITATION_PREFIX_RE = re.compile(
+    r"(?:regid[oa]\s+pel[oa]|nos\s+termos\s+d[ao]|conforme\s+[oa]|"
+    r"previst[oa]\s+n[ao]|de\s+que\s+trata\s+[oa]|referid[oa]\s+n[ao]|"
+    r"alterad[oa]\s+pel[oa]|com\s+fundamento\s+n[ao]|por\s+meio\s+d[ao]|"
+    r"pel[oa])\s*$",
+    flags=re.I,
 )
 
 
@@ -100,6 +108,20 @@ def _minimum_term_window(norm: str, terms: list[str]) -> tuple[int, int] | None:
     return best
 
 
+def _act_markers(text: str) -> list[re.Match[str]]:
+    """Retorna cabeçalhos prováveis, excluindo atos apenas citados no corpo."""
+    markers: list[re.Match[str]] = []
+    for marker in ACT_MARKER_RE.finditer(text):
+        if marker.start() == 0:
+            markers.append(marker)
+            continue
+        prefix = normalize(text[max(0, marker.start() - 120) : marker.start()]).strip()
+        if ACT_CITATION_PREFIX_RE.search(prefix):
+            continue
+        markers.append(marker)
+    return markers
+
+
 def extract_matched_act(text: str, matched_terms: list[str]) -> str:
     """Recorta o ato que contém o conjunto de termos, evitando outros atos da página."""
     clean = clean_text(text)
@@ -111,14 +133,14 @@ def extract_matched_act(text: str, matched_terms: list[str]) -> str:
         return _compact(clean, MAX_EVIDENCE)
     center = max(0, min(len(clean), (window[0] + window[1]) // 2))
 
-    markers = list(ACT_MARKER_RE.finditer(clean))
+    markers = _act_markers(clean)
     start = 0
     end = len(clean)
     for index, marker in enumerate(markers):
         if marker.start() <= center:
             start = marker.start()
             end = markers[index + 1].start() if index + 1 < len(markers) else len(clean)
-        elif marker.start() > center:
+        else:
             break
     act = clean[start:end].strip()
     if 80 <= len(act) <= MAX_EVIDENCE:
@@ -157,14 +179,19 @@ def _authorization_matches(norm: str) -> list[re.Match[str]]:
 
 
 def _is_negated_authorization(norm: str, match: re.Match[str]) -> bool:
-    context = norm[max(0, match.start() - 100) : match.end()]
-    return bool(
-        re.search(
-            r"\b(?:nao|jamais|vedad[oa]|deixa\s+de|sem)\b[^.;]{0,60}"
-            r"\b(?:autoriza|autorizar|autorizad[ao])\b",
-            context,
-        )
+    before_and_clause = norm[max(0, match.start() - 100) : match.end()]
+    clause = match.group(0)
+    negation_before_verb = re.search(
+        r"\b(?:nao|jamais|vedad[oa]|deixa\s+de|sem)\b[^.;]{0,60}"
+        r"\b(?:autoriza|autorizar|autorizad[ao])\b",
+        before_and_clause,
     )
+    negation_before_action = re.search(
+        r"\b(?:nao|jamais|sem)\b[^.;]{0,80}"
+        r"\b(?:realizar|realizacao|abertura)\b",
+        clause,
+    )
+    return bool(negation_before_verb or negation_before_action)
 
 
 def strictly_relevant(category: str, source: str, title: str, text: str, next_year: int) -> bool:
@@ -196,7 +223,7 @@ def strictly_relevant(category: str, source: str, title: str, text: str, next_ye
         return marker and context
 
     if category == "ldo":
-        year_ok = _word(norm, str(next_year))
+        year_ok = _ldo_year(combined, next_year) == str(next_year)
         enactment = _title_starts(title, ("lei",)) or any(
             _has(norm, term)
             for term in (
@@ -270,8 +297,6 @@ def _operative_sentence(text: str, needles: tuple[str, ...]) -> str:
 
 def _ldo_year(text: str, preferred: int | None = None) -> str:
     norm = normalize(text)
-    if preferred is not None and _word(norm, str(preferred)):
-        return str(preferred)
     patterns = (
         r"(?:para\s+o\s+exercicio|exercicio|ano\s+financeiro)\s+(?:de\s+)?(20\d{2})",
         r"diretrizes[^.;]{0,160}?\bpara\s+(?:o\s+exercicio\s+de\s+)?(20\d{2})",
@@ -282,6 +307,8 @@ def _ldo_year(text: str, preferred: int | None = None) -> str:
         match = re.search(pattern, norm)
         if match:
             return match.group(1)
+    if preferred is not None and _word(norm, str(preferred)):
+        return str(preferred)
     return str(preferred) if preferred is not None else ""
 
 
@@ -401,20 +428,37 @@ def stable_identity(
     )
 
 
+def recollection_key(
+    *,
+    source: str,
+    category: str,
+    published_at: str,
+    link: str,
+    page: int | None,
+) -> str:
+    parsed = urlsplit(link)
+    canonical_link = urlunsplit((parsed.scheme.casefold(), parsed.netloc.casefold(), parsed.path, parsed.query, ""))
+    return sha256_text(source, category, published_at[:10], canonical_link, page or "")
+
+
 def sanitize_stored_items(items: list[FeedItem], next_year: int) -> tuple[list[FeedItem], int]:
     output: list[FeedItem] = []
     removed = 0
     for item in items:
         evidence = clean_text(item.evidence)
         semantic = item.title.startswith("[DODF]") or item.title.startswith("[DOU]")
+        item.recollection_key = item.recollection_key or recollection_key(
+            source=item.source,
+            category=item.category,
+            published_at=item.published_at,
+            link=item.link,
+            page=item.page,
+        )
 
         if not evidence and semantic:
-            # Versões 1.1 já perderam o texto-fonte. Preserva-se o item; quando o
-            # ato for recolhido, merge_items o substituirá pela versão com evidência.
-            item.identity = item.identity or sha256_text(
-                item.source, item.category, item.link, item.page or "", item.published_at[:10]
-            )
-            item.guid = item.identity
+            # Preserva o item legado fora do lookback. Quando o mesmo link/página
+            # for recolhido, merge_items o substituirá usando recollection_key.
+            item.identity = item.identity or item.guid
             output.append(item)
             continue
 
