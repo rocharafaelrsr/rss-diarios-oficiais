@@ -39,6 +39,7 @@ class FeedItem:
     matched_terms: list[str]
     evidence: str = ""
     identity: str = ""
+    recollection_key: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -48,6 +49,7 @@ class FeedItem:
         payload = dict(value)
         payload.setdefault("evidence", "")
         payload.setdefault("identity", "")
+        payload.setdefault("recollection_key", "")
         # O formato antigo usava barras verticais e guardava o texto-fonte no
         # próprio excerpt. Recupera essa evidência para a migração determinística.
         if not payload["evidence"] and " | " in str(payload.get("title", "")):
