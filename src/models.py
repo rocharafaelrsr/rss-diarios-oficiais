@@ -48,4 +48,8 @@ class FeedItem:
         payload = dict(value)
         payload.setdefault("evidence", "")
         payload.setdefault("identity", "")
+        # O formato antigo usava barras verticais e guardava o texto-fonte no
+        # próprio excerpt. Recupera essa evidência para a migração determinística.
+        if not payload["evidence"] and " | " in str(payload.get("title", "")):
+            payload["evidence"] = str(payload.get("excerpt", ""))
         return cls(**payload)
