@@ -42,8 +42,14 @@ class Rule:
     def _term_events(norm: str, group_id: int, terms: list[str]) -> list[tuple[int, int, str]]:
         events: list[tuple[int, int, str]] = []
         for term in terms:
+            whole_term = term != term.strip()
             needle = normalize(term).strip()
             if not needle:
+                continue
+            if whole_term:
+                pattern = re.compile(rf"(?<!\w){re.escape(needle)}(?!\w)")
+                for match in pattern.finditer(norm):
+                    events.append((match.start(), group_id, term))
                 continue
             start = 0
             while True:
@@ -93,10 +99,10 @@ class Rule:
         if self.sources and source not in self.sources:
             return None
         norm = normalize(text)
-        if any(normalize(term) in norm for term in self.exclude_phrases):
+        if any(normalize(term).strip() in norm for term in self.exclude_phrases):
             return None
 
-        unconditional = [term for term in self.unconditional_phrases if normalize(term) in norm]
+        unconditional = [term for term in self.unconditional_phrases if normalize(term).strip() in norm]
         if unconditional:
             return unconditional
 

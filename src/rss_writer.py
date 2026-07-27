@@ -30,7 +30,7 @@ def write_rss(
     _sub(channel, "description", description)
     _sub(channel, "language", "pt-BR")
     _sub(channel, "lastBuildDate", format_datetime(last_build))
-    _sub(channel, "generator", "rss-diarios-oficiais/1.0")
+    _sub(channel, "generator", "rss-diarios-oficiais/1.1")
     _sub(channel, "ttl", "60")
 
     for item in items:
@@ -42,20 +42,9 @@ def write_rss(
         published = datetime.fromisoformat(item.published_at)
         _sub(node, "pubDate", format_datetime(published))
         _sub(node, "category", item.category_label)
-        details = [
-            f"Fonte: {item.source_label}",
-            f"Categoria: {item.category_label}",
-        ]
-        if item.edition:
-            details.append(f"Edição: {item.edition}")
-        if item.section:
-            details.append(f"Seção: {item.section}")
-        if item.page:
-            details.append(f"Página: {item.page}")
-        details.append(f"Termos identificados: {', '.join(item.matched_terms)}")
-        details.append("")
-        details.append(item.excerpt)
-        _sub(node, "description", "\n".join(details))
+        # O Portal RSR já exibe fonte, categoria e data em campos próprios. A
+        # descrição deve conter apenas o objeto da publicação, em uma frase curta.
+        _sub(node, "description", item.excerpt)
 
     output.parent.mkdir(parents=True, exist_ok=True)
     ET.indent(rss, space="  ")

@@ -14,13 +14,15 @@ import requests
 import yaml
 
 from diarios.dodf import DodfCollector
-from diarios.dou import DouCollector, InlabsAuthenticationError
+from diarios.dou import InlabsAuthenticationError
+from diarios.dou_structured import StructuredDouCollector
 from http_client import HttpClient
 from models import Document, FeedItem
+from presentation import build_presentation, sanitize_stored_items, strictly_relevant
 from rss_writer import write_rss
 from rules import Rule
 from state import load_items, merge_items, save_items
-from text_utils import excerpt_around, sha256_text
+from text_utils import sha256_text
 
 BRT = ZoneInfo("America/Sao_Paulo")
 LOG = logging.getLogger("rss_diarios")
@@ -40,18 +42,17 @@ def expand_rule_tokens(value: Any, *, next_year: int) -> Any:
     return value
 
 
-def compact_title(text: str, limit: int = 205) -> str:
-    value = " ".join(text.replace("…", " ").split()).strip(" .;:-")
-    if len(value) <= limit:
-        return value
-    return value[: limit - 1].rsplit(" ", 1)[0] + "…"
-
-
 def days_to_collect(today: date, lookback: int) -> list[date]:
     return [today - timedelta(days=offset) for offset in range(max(1, lookback))]
 
 
-def classify(documents: list[Document], rules: list[Rule], collected_at: datetime) -> list[FeedItem]:
+def classify(
+    documents: list[Document],
+    rules: list[Rule],
+    collected_at: datetime,
+    *,
+    next_year: int,
+) -> list[FeedItem]:
     output: list[FeedItem] = []
     for document in documents:
         combined = f"{document.title}\n{document.text}"
@@ -59,23 +60,17 @@ def classify(documents: list[Document], rules: list[Rule], collected_at: datetim
             matched = rule.match(document.source, combined)
             if not matched:
                 continue
-            excerpt = excerpt_around(combined, matched)
+            if not strictly_relevant(rule.id, document.source, document.title, document.text, next_year):
+                LOG.debug("Descartado pelo escopo estrito: %s | %s", rule.id, document.title)
+                continue
+            title, summary = build_presentation(document, rule.id, next_year)
             guid = sha256_text(
                 document.source,
                 document.url,
                 document.page or "",
                 rule.id,
-                excerpt[:240],
+                summary[:240],
             )
-            prefix = "DODF" if document.source == "dodf" else "DOU"
-            location_parts = [part for part in [document.edition, document.section] if part]
-            if document.page:
-                location_parts.append(f"p. {document.page}")
-            location = " · ".join(location_parts)
-            if document.source == "dodf":
-                raw_title = f"[{prefix}] {rule.label} | {location} | {excerpt}"
-            else:
-                raw_title = f"[{prefix}] {rule.label} | {document.title} | {excerpt}"
             output.append(
                 FeedItem(
                     guid=guid,
@@ -84,14 +79,14 @@ def classify(documents: list[Document], rules: list[Rule], collected_at: datetim
                     priority=rule.priority,
                     source=document.source,
                     source_label=document.source_label,
-                    title=compact_title(raw_title),
+                    title=title,
                     link=document.url,
                     published_at=document.published_at.isoformat(),
                     collected_at=collected_at.isoformat(),
                     edition=document.edition,
                     section=document.section,
                     page=document.page,
-                    excerpt=excerpt,
+                    excerpt=summary,
                     matched_terms=matched,
                 )
             )
@@ -115,8 +110,9 @@ def main() -> int:
     config = load_config(root / args.config)
     project = config["project"]
     today = date.fromisoformat(args.date) if args.date else datetime.now(BRT).date()
+    next_year = today.year + 1
     now = datetime.now(BRT)
-    expanded_rules = expand_rule_tokens(config["rules"], next_year=today.year + 1)
+    expanded_rules = expand_rule_tokens(config["rules"], next_year=next_year)
     rules = [Rule.from_dict(value) for value in expanded_rules]
     client = HttpClient(
         timeout=int(project.get("request_timeout_seconds", 35)),
@@ -159,13 +155,14 @@ def main() -> int:
     dou_required_failure = False
     if args.source in ("all", "dou") and config["sources"]["dou"].get("enabled", True):
         dou_cfg = config["sources"]["dou"]
-        collector = DouCollector(
+        public_terms = expand_rule_tokens(dou_cfg.get("public_search_terms", []), next_year=next_year)
+        collector = StructuredDouCollector(
             client,
             dou_cfg["inlabs_base_url"],
             os.getenv("INLABS_EMAIL", ""),
             os.getenv("INLABS_PASSWORD", ""),
             dou_cfg.get("public_search_url", "https://www.in.gov.br/consulta/-/buscar/dou"),
-            dou_cfg.get("public_search_terms"),
+            public_terms,
         )
         count_before = len(documents)
         for day in days:
@@ -189,10 +186,12 @@ def main() -> int:
             "fallback_reason": collector.fallback_reason or None,
         }
 
-    new_items = classify(documents, rules, now)
+    new_items = classify(documents, rules, now, next_year=next_year)
     items_path = root / "data/items.json"
+    stored_raw = load_items(items_path)
+    stored_items, pruned_items = sanitize_stored_items(stored_raw, next_year)
     all_items = merge_items(
-        load_items(items_path),
+        stored_items,
         new_items,
         now=now,
         retention_days=int(project.get("retention_days", 730)),
@@ -219,16 +218,18 @@ def main() -> int:
             "documents_examined": len(documents),
             "new_matches": len(new_items),
             "stored_items": len(all_items),
+            "items_removed_out_of_scope": pruned_items,
         }
     )
     status_name = "status.json" if args.source == "all" else f"status-{args.source}.json"
     status_path = root / "docs" / status_name
     status_path.write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     LOG.info(
-        "Concluído: %d documentos, %d correspondências novas, %d itens armazenados",
+        "Concluído: %d documentos, %d correspondências novas, %d itens armazenados, %d removidos do escopo",
         len(documents),
         len(new_items),
         len(all_items),
+        pruned_items,
     )
 
     if dou_required_failure:

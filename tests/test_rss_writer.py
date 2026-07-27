@@ -16,14 +16,14 @@ def test_writes_valid_rss(tmp_path: Path):
         priority=10,
         source="dodf",
         source_label="DODF",
-        title="[DODF] Nomeação",
+        title="[DODF] Nomeia aprovados no concurso ATUB",
         link="https://example.org/doc.pdf#page=2",
         published_at=now.isoformat(),
         collected_at=now.isoformat(),
         edition="DODF 100",
         section="",
         page=2,
-        excerpt="Trecho relevante.",
+        excerpt="O ato nomeia os candidatos aprovados para o cargo.",
         matched_terms=["auditor fiscal de atividades urbanas"],
     )
     output = tmp_path / "feed.xml"
@@ -32,3 +32,7 @@ def test_writes_valid_rss(tmp_path: Path):
     assert root.tag == "rss"
     assert root.findtext("./channel/item/guid") == "abc"
     assert root.findtext("./channel/item/link").endswith("#page=2")
+    description = root.findtext("./channel/item/description")
+    assert description == "O ato nomeia os candidatos aprovados para o cargo."
+    assert "Fonte:" not in description
+    assert "Termos identificados:" not in description

@@ -16,6 +16,8 @@ class Document:
     edition: str = ""
     section: str = ""
     page: int | None = None
+    publication_type: str = ""
+    organization: str = ""
 
 
 @dataclass(slots=True)
