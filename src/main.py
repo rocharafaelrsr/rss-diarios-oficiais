@@ -14,7 +14,8 @@ import requests
 import yaml
 
 from diarios.dodf import DodfCollector
-from diarios.dou import DouCollector, InlabsAuthenticationError
+from diarios.dou import InlabsAuthenticationError
+from diarios.dou_structured import StructuredDouCollector
 from http_client import HttpClient
 from models import Document, FeedItem
 from presentation import build_presentation, sanitize_stored_items, strictly_relevant
@@ -155,7 +156,7 @@ def main() -> int:
     if args.source in ("all", "dou") and config["sources"]["dou"].get("enabled", True):
         dou_cfg = config["sources"]["dou"]
         public_terms = expand_rule_tokens(dou_cfg.get("public_search_terms", []), next_year=next_year)
-        collector = DouCollector(
+        collector = StructuredDouCollector(
             client,
             dou_cfg["inlabs_base_url"],
             os.getenv("INLABS_EMAIL", ""),
