@@ -71,8 +71,6 @@ def _url_key(item: FeedItem) -> str:
 
 def _refresh_recollection_key(item: FeedItem) -> str:
     key = _full_key(item)
-    # Persiste a chave completa nova, mas o merge também recalcula o alias da URL
-    # para manter a garantia de substituição de versões antigas do mesmo link.
     item.recollection_key = key
     return key
 
@@ -110,29 +108,35 @@ def merge_items(
 ) -> list[FeedItem]:
     cutoff = now - timedelta(days=retention_days)
 
-    new_full_keys = {_refresh_recollection_key(item) for item in new}
     new_url_keys = {_url_key(item) for item in new}
     new_legacy_keys = {_legacy_key(item) for item in new}
 
+    new_by_full: dict[str, list[FeedItem]] = defaultdict(list)
     new_by_reference: dict[str, list[FeedItem]] = defaultdict(list)
     new_incomplete_by_reference: dict[str, list[FeedItem]] = defaultdict(list)
     for item in new:
+        full_key = _refresh_recollection_key(item)
         reference_key = _reference_key(item)
+        new_by_full[full_key].append(item)
         new_by_reference[reference_key].append(item)
         if not _metadata_complete(item):
             new_incomplete_by_reference[reference_key].append(item)
 
-    # 1. Metadados completos e iguais: usa a chave editorial estrita.
-    # 2. Mesmo link: substitui ainda que uma correção tenha mudado o ato extraído.
-    # 3. Se um backend omitiu metadados: exige referência normativa E conteúdo
-    #    discriminante compatível, evitando colisões de PORTARIA Nº 1 entre órgãos.
+    # Ordem de decisão:
+    # 1. Mesmo URL oficial: substitui, inclusive após correção de extração.
+    # 2. Mesma chave editorial completa: ainda exige conteúdo discriminante
+    #    compatível, pois tipo/número/página não identificam globalmente o órgão.
+    # 3. Metadados incompletos: exige a mesma referência normativa e a mesma
+    #    compatibilidade de conteúdo.
     old_kept: list[FeedItem] = []
     for item in old:
         current_key = _refresh_recollection_key(item)
         reference_key = _reference_key(item)
         complete = _metadata_complete(item)
 
-        replaced = current_key in new_full_keys or _url_key(item) in new_url_keys
+        replaced = _url_key(item) in new_url_keys
+        if not replaced:
+            replaced = _compatible_candidate(item, new_by_full.get(current_key, []))
         if not replaced:
             candidates = (
                 new_by_reference.get(reference_key, [])
