@@ -4,6 +4,7 @@ import io
 import logging
 import os
 import re
+import time as time_module
 import zipfile
 from datetime import date, datetime, time
 from html import unescape
@@ -38,24 +39,48 @@ class DouCollector:
         self.base_url = base_url.rstrip("/") + "/"
         self.email = email.strip()
         self.password = password
+        self._logged_in = False
 
     def _login(self) -> None:
+        if self._logged_in and self.client.session.cookies.get("inlabs_session_cookie"):
+            return
         if not self.email or not self.password:
             raise InlabsAuthenticationError(
                 "Credenciais do INLABS ausentes. Configure INLABS_EMAIL e INLABS_PASSWORD."
             )
-        response = self.client.session.post(
-            urljoin(self.base_url, "logar.php"),
-            data={"email": self.email, "password": self.password},
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            },
-            timeout=self.client.timeout,
-        )
-        response.raise_for_status()
-        if not self.client.session.cookies.get("inlabs_session_cookie"):
-            raise InlabsAuthenticationError("Autenticação no INLABS recusada.")
+
+        login_url = urljoin(self.base_url, "logar.php")
+        referer = urljoin(self.base_url, "acessar.php")
+        last_error: Exception | None = None
+        for attempt in range(1, 3):
+            try:
+                # Cria cookies e contexto de navegação antes do POST. Alguns
+                # servidores encerram conexões diretas de datacenters sem esse passo.
+                self.client.get(self.base_url)
+                response = self.client.session.post(
+                    login_url,
+                    data={"email": self.email, "password": self.password},
+                    headers={
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                        "Origin": self.base_url.rstrip("/"),
+                        "Referer": referer,
+                    },
+                    timeout=self.client.request_timeout,
+                )
+                response.raise_for_status()
+                if not self.client.session.cookies.get("inlabs_session_cookie"):
+                    raise InlabsAuthenticationError("Autenticação no INLABS recusada.")
+                self._logged_in = True
+                return
+            except InlabsAuthenticationError:
+                raise
+            except Exception as exc:
+                last_error = exc
+                LOG.warning("INLABS: tentativa de login %d/2 falhou: %s", attempt, exc)
+                if attempt < 2:
+                    time_module.sleep(2.5)
+        raise ConnectionError(f"INLABS indisponível durante o login: {last_error}") from last_error
 
     def _zip_urls(self, day: date) -> list[str]:
         self._login()
