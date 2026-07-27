@@ -6,13 +6,13 @@ project:
   max_items_per_feed: 300
   retention_days: 730
   lookback_days: 3
-  request_timeout_seconds: 35
-  user_agent: "RSS-Diarios-Oficiais/1.0 (+https://github.com/rocharafaelrsr/rss-diarios-oficiais)"
+  request_timeout_seconds: 30
+  user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
 
 sources:
   dodf:
     enabled: true
-    daily_url: "https://www.dodf.df.gov.br/dodf/jornal/diario"
+    daily_url: "https://dodf.df.gov.br/dodf/jornal/diario"
     # O coletor consulta a página diária oficial e extrai todos os PDFs publicados,
     # inclusive edições extras, suplementos e especiais quando listados nela.
   dou:
