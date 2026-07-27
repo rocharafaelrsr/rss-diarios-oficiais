@@ -21,14 +21,13 @@ sources:
     required: true
     inlabs_base_url: "https://inlabs.in.gov.br/"
     public_search_url: "https://www.in.gov.br/consulta/-/buscar/dou"
+    # Consultas avançadas compatíveis com o buscador oficial e com o Ro-DOU.
+    # Não pesquisar "concurso público" ou "LDO" isoladamente: isso traz editais,
+    # nomeações e atos comuns que não pertencem ao escopo do monitoramento.
     public_search_terms:
-      - '"lei de diretrizes orçamentárias"'
-      - '"diretrizes orçamentárias"'
-      - '"concurso público"'
-      - '"autorização de concurso"'
-      - "LDO"
-    # O INLABS permanece como fonte primária. Em falha de rede, 5xx ou login,
-    # a busca pública oficial do DOU recupera apenas os atos tematicamente úteis.
+      - '"lei de diretrizes orçamentárias" AND ${NEXT_YEAR}'
+      - '("lei de diretrizes orçamentárias" OR LDO) AND ("concurso público" OR provimento OR nomeação OR "admissão de pessoal") AND (altera OR alteração OR emenda OR veto OR retifica)'
+      - '("autoriza a realização" OR "fica autorizada a realização" OR "autorizar a realização" OR "autoriza a abertura") AND "concurso público"'
 
 feeds:
   todos:
@@ -45,7 +44,7 @@ feeds:
     categories: [ldo, ldo_concursos]
   autorizacoes-concursos:
     title: "DODF e DOU — Autorizações de concursos"
-    description: "Atos que autorizem ou alterem a autorização de novos concursos públicos."
+    description: "Atos que autorizem a realização de novos concursos públicos."
     categories: [autorizacao_concurso]
 
 rules:
@@ -53,17 +52,16 @@ rules:
     label: "Concurso ATUB"
     sources: [dodf]
     priority: 10
-    max_span_chars: 2200
+    max_span_chars: 1200
     any_phrases:
       - "auditor fiscal de atividades urbanas"
       - "auditoria de atividades urbanas"
       - "auditor de atividades urbanas"
       - "carreira auditoria de atividades urbanas"
-      - "atividades urbanas"
       - "edital nº 01/2022"
       - "edital n° 01/2022"
       - "edital 01/2022"
-      - "atub"
+      - " atub "
     context_any:
       - "concurso"
       - "curso de formação"
@@ -82,8 +80,6 @@ rules:
       - "validade do concurso"
       - "edital"
       - "inscrição"
-      - "banca examinadora"
-      - "processo seletivo"
     unconditional_phrases:
       - "edital nº 01/2022"
       - "edital n° 01/2022"
@@ -91,14 +87,12 @@ rules:
   - id: ldo
     label: "Publicação da LDO"
     sources: [dodf, dou]
-    priority: 9
-    max_span_chars: 2400
+    priority: 10
+    max_span_chars: 800
     all_groups:
-      - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias"]
-      - ["lei", "sanção", "sanciona", "publica", "promulga", "veto", "projeto de lei"]
+      - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo "]
+      - ["lei", "sanciona", "promulga", "publica a lei", "aprova a lei", "dispõe sobre"]
       - ["${NEXT_YEAR}", "exercício de ${NEXT_YEAR}", "para o exercício de ${NEXT_YEAR}"]
-    any_regex:
-      - "\\bLDO\\b"
     exclude_phrases:
       - "jurisprudência"
       - "questão de prova"
@@ -107,20 +101,25 @@ rules:
     label: "Alteração da LDO sobre concursos"
     sources: [dodf, dou]
     priority: 10
-    max_span_chars: 3600
+    max_span_chars: 900
     all_groups:
       - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo "]
       - ["concurso público", "provimento", "nomeação", "admissão de pessoal", "criação de cargos", "cargos vagos", "anexo de pessoal", "despesa de pessoal"]
-      - ["altera", "alteração", "inclui", "acrescenta", "suprime", "substitui", "retifica", "emenda", "anexo", "veto", "sanção"]
+      - ["altera", "alteração", "inclui", "acrescenta", "suprime", "substitui", "retifica", "emenda", "veto"]
+      - ["lei", "projeto de lei", "emenda", "veto", "mensagem"]
+    exclude_phrases:
+      - "homologação do resultado"
+      - "resultado do concurso"
+      - "curso preparatório"
 
   - id: autorizacao_concurso
-    label: "Autorização de concurso"
+    label: "Autorização de novo concurso"
     sources: [dodf, dou]
-    priority: 9
-    max_span_chars: 2000
+    priority: 10
+    max_span_chars: 260
     all_groups:
-      - ["concurso público", "certame"]
-      - ["autoriza", "autorização", "fica autorizada", "fica autorizado", "autorizar"]
+      - ["autoriza a realização", "fica autorizada a realização", "fica autorizado a realização", "autorizar a realização", "autoriza a abertura", "autoriza a realizar"]
+      - ["concurso público", "novo concurso público", "realizar concurso público"]
     exclude_phrases:
       - "curso preparatório"
       - "concurso de remoção"
@@ -128,3 +127,5 @@ rules:
       - "licitação"
       - "jurisprudência"
       - "decisão judicial"
+      - "homologação do resultado"
+      - "resultado final do concurso"
