@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 import requests
 import yaml
 
+from act_extraction import extract_matched_act
 from diarios.dodf import DodfCollector
 from diarios.dou import InlabsAuthenticationError
 from diarios.dou_structured import StructuredDouCollector
@@ -20,7 +21,6 @@ from http_client import HttpClient
 from models import Document, FeedItem
 from presentation import (
     build_presentation,
-    extract_matched_act,
     recollection_key,
     sanitize_stored_items,
     stable_identity,
