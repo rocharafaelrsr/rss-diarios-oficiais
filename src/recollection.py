@@ -19,6 +19,19 @@ def _canonical_numbered_field(value: str) -> str:
     return ".".join(numbers) if numbers else normalized
 
 
+def _canonical_semantic_title(title: str) -> str:
+    semantic = SEMANTIC_PREFIX_RE.sub("", clean_text(title))
+    value = normalize(semantic).strip()
+    # Versões antigas e novas dos cards podem alternar entre “para Analista” e
+    # “para cargos de Analista”. Essa diferença não identifica outro ato.
+    value = re.sub(
+        r"\bpara\s+(?:o\s+)?(?:provimento\s+de\s+)?(?:os?\s+)?cargos?\s+de\b",
+        "para",
+        value,
+    )
+    return re.sub(r"\s+", " ", value).strip()
+
+
 def _act_reference(title: str, evidence: str) -> str:
     """Extrai a identificação normativa compartilhada pelos backends oficiais."""
     for candidate in (clean_text(evidence), clean_text(title)):
@@ -27,8 +40,7 @@ def _act_reference(title: str, evidence: str) -> str:
         match = ACT_REFERENCE_RE.search(candidate)
         if match:
             return normalize(match.group(0)).strip()
-    semantic = SEMANTIC_PREFIX_RE.sub("", clean_text(title))
-    return normalize(semantic).strip()
+    return _canonical_semantic_title(title)
 
 
 def backend_recollection_key(
@@ -70,7 +82,6 @@ def legacy_semantic_key(
     title: str,
 ) -> str:
     """Alias limitado à migração de cards antigos que não guardavam evidência."""
-    semantic = SEMANTIC_PREFIX_RE.sub("", clean_text(title))
     return sha256_text(
         normalize(source).strip(),
         normalize(category).strip(),
@@ -78,5 +89,5 @@ def legacy_semantic_key(
         _canonical_numbered_field(edition),
         _canonical_numbered_field(section),
         page or "",
-        normalize(semantic).strip(),
+        _canonical_semantic_title(title),
     )
