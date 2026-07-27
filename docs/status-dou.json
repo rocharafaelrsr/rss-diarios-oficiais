@@ -1,0 +1,20 @@
+{
+  "started_at": "2026-07-27T14:02:38.721960-03:00",
+  "reference_date": "2026-07-27",
+  "sources": {
+    "dou": {
+      "documents": 0
+    }
+  },
+  "errors": [
+    {
+      "source": "dou",
+      "date": "2026-07-27",
+      "error": "INLABS indisponível durante o login: 502 Server Error: Bad Gateway for url: https://inlabs.in.gov.br/logar.php"
+    }
+  ],
+  "finished_at": "2026-07-27T14:02:43.534617-03:00",
+  "documents_examined": 0,
+  "new_matches": 0,
+  "stored_items": 0
+}
