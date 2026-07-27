@@ -1,6 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from act_extraction import extract_matched_act
 from models import FeedItem
 from recollection import backend_recollection_key
 from state import merge_items
@@ -126,6 +127,50 @@ def test_missing_public_metadata_uses_normative_reference_fallback():
     merged = _merge([old], [new])
 
     assert [item.guid for item in merged] == ["public-incompleto"]
+
+
+def test_incomplete_reference_does_not_merge_different_organizations():
+    old = _item(
+        guid="agencia-alfa",
+        link="https://www.in.gov.br/web/dou/-/portaria-1-alfa",
+        title="[DOU] Autoriza novo concurso para Instituto Alfa",
+        evidence="PORTARIA Nº 1. Autoriza concurso público para o Instituto Alfa.",
+    )
+    new = _item(
+        guid="agencia-beta",
+        link="https://www.in.gov.br/web/dou/-/portaria-1-beta",
+        title="[DOU] Autoriza novo concurso para Instituto Beta",
+        evidence="PORTARIA Nº 1. Autoriza concurso público para o Instituto Beta.",
+        edition="",
+        section="",
+        page=None,
+    )
+
+    merged = _merge([old], [new])
+
+    assert {item.guid for item in merged} == {"agencia-alfa", "agencia-beta"}
+
+
+def test_incomplete_reference_without_discriminators_is_not_merged():
+    old = _item(
+        guid="generico-antigo",
+        link="https://www.in.gov.br/web/dou/-/portaria-1-a",
+        title="[DOU] Autoriza a realização de novo concurso público",
+        evidence="PORTARIA Nº 1. Autoriza a realização de concurso público.",
+    )
+    new = _item(
+        guid="generico-novo",
+        link="https://www.in.gov.br/web/dou/-/portaria-1-b",
+        title="[DOU] Autoriza a realização de novo concurso público",
+        evidence="PORTARIA Nº 1. Autoriza concurso público.",
+        edition="",
+        section="",
+        page=None,
+    )
+
+    merged = _merge([old], [new])
+
+    assert {item.guid for item in merged} == {"generico-antigo", "generico-novo"}
 
 
 def test_complete_suffixed_editions_remain_distinct():
@@ -297,6 +342,65 @@ def test_decree_law_is_distinct_from_ordinary_law():
     ordinary_law = backend_recollection_key(
         **common,
         evidence="LEI Nº 100. Altera regras sobre concursos públicos.",
+    )
+
+    assert decree_law != ordinary_law
+
+
+def test_ldo_heading_types_use_their_own_numbers():
+    common = {
+        "source": "dou",
+        "category": "ldo_concursos",
+        "published_at": "2026-07-27T06:00:00-03:00",
+        "edition": "140",
+        "section": "DO1",
+        "page": 10,
+        "title": "[DOU] Altera a LDO quanto a concursos",
+    }
+    emenda_1 = backend_recollection_key(
+        **common,
+        evidence="EMENDA Nº 1 AO PROJETO DE LEI Nº 500. Inclui previsão de concursos.",
+    )
+    emenda_2 = backend_recollection_key(
+        **common,
+        evidence="EMENDA Nº 2 AO PROJETO DE LEI Nº 500. Inclui previsão de concursos.",
+    )
+    projeto = backend_recollection_key(
+        **common,
+        evidence="PROJETO DE LEI Nº 500. Altera a LDO quanto ao provimento de cargos.",
+    )
+    mensagem = backend_recollection_key(
+        **common,
+        evidence="MENSAGEM Nº 500. Encaminha alteração da LDO sobre concursos.",
+    )
+
+    assert len({emenda_1, emenda_2, projeto, mensagem}) == 4
+
+
+def test_decree_law_heading_is_preserved_before_key_generation():
+    page = (
+        "DECRETO-LEI Nº 100. Autoriza a realização de concurso público para "
+        "Analista Ambiental e estabelece as condições administrativas aplicáveis. "
+        "LEI Nº 100. Dispõe sobre matéria distinta e sem relação com o certame."
+    )
+    evidence = extract_matched_act(page, ["concurso público", "analista ambiental"])
+
+    assert evidence.startswith("DECRETO-LEI Nº 100")
+    assert "LEI Nº 100. Dispõe" not in evidence
+
+    common = {
+        "source": "dou",
+        "category": "autorizacao_concurso",
+        "published_at": "2026-07-27T06:00:00-03:00",
+        "edition": "140",
+        "section": "DO1",
+        "page": 10,
+        "title": "[DOU] Autoriza novo concurso para Analista Ambiental",
+    }
+    decree_law = backend_recollection_key(**common, evidence=evidence)
+    ordinary_law = backend_recollection_key(
+        **common,
+        evidence="LEI Nº 100. Autoriza concurso público para Analista Ambiental.",
     )
 
     assert decree_law != ordinary_law
