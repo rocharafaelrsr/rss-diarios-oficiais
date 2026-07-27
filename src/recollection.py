@@ -7,7 +7,9 @@ from text_utils import clean_text, normalize, sha256_text
 
 ACT_TYPE_PATTERN = (
     r"decreto(?:\s*-\s*|\s+)lei|"
+    r"projeto\s+de\s+lei|medida\s+provisoria|"
     r"instrucao\s+normativa|ordem\s+de\s+servico|"
+    r"emenda|veto|mensagem|"
     r"lei|portaria|edital|decreto|resolucao|ato|despacho|aviso"
 )
 # A expressão roda sobre texto normalizado, portanto qualificadores acentuados,
@@ -20,6 +22,18 @@ ACT_REFERENCE_RE = re.compile(
     flags=re.I,
 )
 SEMANTIC_PREFIX_RE = re.compile(r"^\[(?:DOU|DODF)\]\s*", flags=re.I)
+
+# Termos estruturais não distinguem dois atos de órgãos/objetos diferentes.
+REFERENCE_NOISE = {
+    "a", "ao", "aos", "as", "com", "da", "das", "de", "do", "dos", "e", "em",
+    "na", "nas", "no", "nos", "o", "os", "para", "por", "que", "se", "um", "uma",
+    "ato", "aviso", "decreto", "despacho", "edital", "emenda", "instrucao", "lei",
+    "mensagem", "normativa", "ordem", "portaria", "projeto", "resolucao", "servico",
+    "veto", "autoriza", "autorizacao", "autorizada", "autorizado", "concurso", "publico",
+    "realiza", "realizacao", "realizar", "abertura", "cargo", "cargos", "provimento",
+    "nomeacao", "admissao", "pessoal", "novo", "nova", "publica", "publicacao",
+    "instituto", "ministerio", "secretaria", "departamento", "agencia", "orgao", "entidade",
+}
 
 
 def _slug(value: str) -> str:
@@ -107,6 +121,38 @@ def _act_reference(title: str, evidence: str) -> str:
     return "semantic:" + _canonical_semantic_title(title)
 
 
+def _discriminating_tokens(title: str, evidence: str) -> frozenset[str]:
+    """Extrai nomes/objetos que diferenciam atos com a mesma numeração."""
+    normalized = normalize(f"{title} {evidence}").strip()
+    normalized = ACT_REFERENCE_RE.sub(" ", normalized)
+    tokens = {
+        token
+        for token in re.findall(r"[a-z0-9]{3,}", normalized)
+        if token not in REFERENCE_NOISE and not token.isdigit()
+    }
+    return frozenset(tokens)
+
+
+def reduced_reference_compatible(
+    *,
+    left_title: str,
+    left_evidence: str,
+    right_title: str,
+    right_evidence: str,
+) -> bool:
+    """Exige conteúdo discriminante compatível para usar a chave sem metadados.
+
+    A referência reduzida nunca é suficiente sozinha: PORTARIA Nº 1 pode existir
+    em vários órgãos. Sem nomes/objetos coincidentes, o merge preserva ambos.
+    """
+    left = _discriminating_tokens(left_title, left_evidence)
+    right = _discriminating_tokens(right_title, right_evidence)
+    if not left or not right:
+        return False
+    overlap = len(left & right)
+    return overlap > 0 and overlap / min(len(left), len(right)) >= 0.75
+
+
 def metadata_is_complete(*, source: str, edition: str, section: str, page: int | None) -> bool:
     """Indica se os metadados necessários estão presentes para comparação estrita."""
     source_norm = normalize(source).strip()
@@ -124,7 +170,7 @@ def backend_reference_key(
     title: str,
     evidence: str,
 ) -> str:
-    """Chave normativa usada quando um backend omite edição, seção ou página."""
+    """Chave normativa candidata quando um backend omite metadados editoriais."""
     return sha256_text(
         normalize(source).strip(),
         normalize(category).strip(),
