@@ -16,10 +16,14 @@ ACT_MARKER_RE = re.compile(
     flags=re.I | re.U,
 )
 ACT_CITATION_PREFIX_RE = re.compile(
-    r"(?:regid[oa]\s+pel[oa]|nos\s+termos\s+d[ao]|conforme\s+[oa]|"
-    r"previst[oa]\s+n[ao]|de\s+que\s+trata\s+[oa]|referid[oa]\s+n[ao]|"
-    r"alterad[oa]\s+pel[oa]|com\s+fundamento\s+n[ao]|por\s+meio\s+d[ao]|"
-    r"pel[oa])\s*$",
+    r"(?:regid[oa]\s+pel[oa]|nos\s+termos\s+d[ao]|"
+    r"conforme\s+(?:[oa]|dispost[oa]\s+n[ao]|previst[oa]\s+n[ao])|"
+    r"em\s+conformidade\s+com\s+(?:[oa]|[oa]\s+dispost[oa]\s+n[ao])|"
+    r"de\s+acordo\s+com\s+(?:[oa]|[oa]\s+dispost[oa]\s+n[ao])|"
+    r"consoante\s+[oa]|em\s+observancia\s+(?:a|ao)|na\s+forma\s+d[ao]|"
+    r"nos\s+moldes\s+d[ao]|previst[oa]\s+n[ao]|de\s+que\s+trata\s+[oa]|"
+    r"referid[oa]\s+n[ao]|alterad[oa]\s+pel[oa]|com\s+fundamento\s+n[ao]|"
+    r"por\s+meio\s+d[ao]|pel[oa])\s*$",
     flags=re.I,
 )
 
@@ -115,7 +119,7 @@ def _act_markers(text: str) -> list[re.Match[str]]:
         if marker.start() == 0:
             markers.append(marker)
             continue
-        prefix = normalize(text[max(0, marker.start() - 120) : marker.start()]).strip()
+        prefix = normalize(text[max(0, marker.start() - 160) : marker.start()]).strip()
         if ACT_CITATION_PREFIX_RE.search(prefix):
             continue
         markers.append(marker)
@@ -186,9 +190,11 @@ def _is_negated_authorization(norm: str, match: re.Match[str]) -> bool:
         r"\b(?:autoriza|autorizar|autorizad[ao])\b",
         before_and_clause,
     )
+    # Só considera negação ligada diretamente à ação. Cláusulas restritivas como
+    # “sem aumento de despesa, a realizar concurso” continuam válidas.
     negation_before_action = re.search(
-        r"\b(?:nao|jamais|sem)\b[^.;]{0,80}"
-        r"\b(?:realizar|realizacao|abertura)\b",
+        r"\b(?:nao|jamais|sem)\s+(?:a\s+)?(?:proceder\s+a\s+)?"
+        r"(?:realizar|realizacao|abertura)\b",
         clause,
     )
     return bool(negation_before_verb or negation_before_action)
@@ -297,18 +303,41 @@ def _operative_sentence(text: str, needles: tuple[str, ...]) -> str:
 
 def _ldo_year(text: str, preferred: int | None = None) -> str:
     norm = normalize(text)
-    patterns = (
-        r"(?:para\s+o\s+exercicio|exercicio|ano\s+financeiro)\s+(?:de\s+)?(20\d{2})",
+    # Primeiro, associa o ano à própria LDO ou Lei Orçamentária. Referências
+    # posteriores a outros exercícios (resultados, metas ou séries históricas)
+    # não podem substituir o exercício principal.
+    specific_patterns = (
+        r"(?:lei\s+de\s+diretrizes\s+orcamentarias|\bldo\b)[^.;]{0,180}?"
+        r"(?:para|relativ[ao]s?\s+(?:a|ao)|do)\s+(?:o\s+exercicio\s+de\s+)?(20\d{2})",
+        r"diretrizes[^.;]{0,220}?lei\s+orcamentaria(?:\s+anual)?[^.;]{0,100}?"
+        r"(?:para\s+o\s+exercicio\s+de|do\s+exercicio\s+de|de|para)\s+(20\d{2})",
+        r"lei\s+orcamentaria(?:\s+anual)?[^.;]{0,120}?"
+        r"(?:para\s+o\s+exercicio\s+de|do\s+exercicio\s+de|de|para)\s+(20\d{2})",
         r"diretrizes[^.;]{0,160}?\bpara\s+(?:o\s+exercicio\s+de\s+)?(20\d{2})",
-        r"lei\s+orcamentaria[^.;]{0,80}?\b(?:de|para)\s+(20\d{2})",
         r"\bldo\s+(?:de|para)\s+(20\d{2})",
     )
-    for pattern in patterns:
+    for pattern in specific_patterns:
         match = re.search(pattern, norm)
         if match:
             return match.group(1)
+
+    generic_matches = list(
+        re.finditer(
+            r"(?:para\s+o\s+exercicio|exercicio|ano\s+financeiro)\s+(?:de\s+)?(20\d{2})",
+            norm,
+        )
+    )
+    for match in generic_matches:
+        context = norm[max(0, match.start() - 220) : min(len(norm), match.end() + 80)]
+        if _ldo_marker(context) or "lei orcamentaria" in context:
+            return match.group(1)
+
     if preferred is not None and _word(norm, str(preferred)):
         return str(preferred)
+
+    generic_years = list(dict.fromkeys(match.group(1) for match in generic_matches))
+    if len(generic_years) == 1:
+        return generic_years[0]
     return str(preferred) if preferred is not None else ""
 
 
