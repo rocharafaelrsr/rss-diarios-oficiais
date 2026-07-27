@@ -40,6 +40,7 @@ class FeedItem:
     evidence: str = ""
     identity: str = ""
     recollection_key: str = ""
+    organization: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -50,6 +51,7 @@ class FeedItem:
         payload.setdefault("evidence", "")
         payload.setdefault("identity", "")
         payload.setdefault("recollection_key", "")
+        payload.setdefault("organization", "")
         # O formato antigo usava barras verticais e guardava o texto-fonte no
         # próprio excerpt. Recupera essa evidência para a migração determinística.
         if not payload["evidence"] and " | " in str(payload.get("title", "")):
