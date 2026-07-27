@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 import requests
 import yaml
 
-from diarios.dodf import DodfCollector
+from diarios.dodf_resilient import ResilientDodfCollector
 from diarios.dou import InlabsAuthenticationError
 from diarios.dou_structured import StructuredDouCollector
 from http_client import HttpClient
@@ -50,6 +50,20 @@ def expand_rule_tokens(value: Any, *, next_year: int) -> Any:
 
 def days_to_collect(today: date, lookback: int) -> list[date]:
     return [today - timedelta(days=offset) for offset in range(max(1, lookback))]
+
+
+def dodf_business_day_health(days: list[date], day_counts: dict[str, int | None]) -> dict[str, Any]:
+    business_days = [day for day in days if day.weekday() < 5]
+    with_documents = [
+        day
+        for day in business_days
+        if (day_counts.get(day.isoformat()) or 0) > 0
+    ]
+    return {
+        "business_days_checked": [day.isoformat() for day in business_days],
+        "business_days_with_documents": [day.isoformat() for day in with_documents],
+        "healthy": not business_days or bool(with_documents),
+    }
 
 
 def classify(
@@ -164,27 +178,54 @@ def main() -> int:
     lookback = args.lookback if args.lookback is not None else int(project.get("lookback_days", 3))
     days = days_to_collect(today, lookback)
 
+    dodf_required_failure = False
     if args.source in ("all", "dodf") and config["sources"]["dodf"].get("enabled", True):
         dodf_cfg = config["sources"]["dodf"]
-        collector = DodfCollector(
+        collector = ResilientDodfCollector(
             client,
             dodf_cfg["daily_url"],
             dodf_cfg.get("sinj_search_url", "https://www.sinj.df.gov.br/sinj/Pesquisas.aspx"),
         )
         count_before = len(documents)
+        day_counts: dict[str, int | None] = {}
         for day in days:
             try:
-                documents.extend(collector.collect(day))
+                day_documents = collector.collect(day)
+                day_counts[day.isoformat()] = len(day_documents)
+                documents.extend(day_documents)
             except Exception as exc:
+                day_counts[day.isoformat()] = None
                 LOG.exception("Falha geral no DODF em %s", day)
                 status["errors"].append({"source": "dodf", "date": day.isoformat(), "error": str(exc)[:500]})
                 if isinstance(exc, (requests.RequestException, ConnectionError, RuntimeError)):
-                    LOG.warning("DODF: circuito aberto; demais datas serão retomadas na próxima execução")
+                    LOG.warning("DODF: fallback indisponível; datas restantes serão retomadas na próxima execução")
                     break
+
+        health = dodf_business_day_health(days, day_counts)
+        source_documents = len(documents) - count_before
+        if not health["healthy"]:
+            message = (
+                "Nenhum documento do DODF foi obtido nos dias úteis da janela; "
+                "o resultado vazio não será publicado como coleta válida."
+            )
+            status["errors"].append({
+                "source": "dodf",
+                "date": today.isoformat(),
+                "error": message,
+            })
+            dodf_required_failure = bool(dodf_cfg.get("required", True))
+            LOG.error("DODF: %s", message)
+
         status["sources"]["dodf"] = {
-            "documents": len(documents) - count_before,
+            "documents": source_documents,
             "backend": collector.backend,
             "fallback_reason": collector.fallback_reason or None,
+            "documents_by_date": day_counts,
+            "primary_attempts": collector.primary_attempts,
+            "primary_circuit_open": collector.primary_circuit_open,
+            "primary_circuit_reason": collector.primary_circuit_reason or None,
+            "primary_skipped_dates": collector.primary_skipped_dates,
+            **health,
         }
 
     dou_required_failure = False
@@ -221,31 +262,50 @@ def main() -> int:
             "fallback_reason": collector.fallback_reason or None,
         }
 
-    new_items = classify(documents, rules, now, next_year=next_year)
+    hard_failure_without_documents = bool(
+        not documents
+        and (
+            dodf_required_failure
+            or dou_required_failure
+            or status["errors"]
+        )
+    )
+
     items_path = root / "data/items.json"
     stored_raw = load_items(items_path)
-    stored_items, pruned_items = sanitize_stored_items(stored_raw, next_year)
-    all_items = merge_items(
-        stored_items,
-        new_items,
-        now=now,
-        retention_days=int(project.get("retention_days", 730)),
-    )
-    save_items(items_path, all_items)
-
-    base_url = str(project["base_url"]).rstrip("/")
-    max_items = int(project.get("max_items_per_feed", 300))
-    for slug, feed in config["feeds"].items():
-        categories = set(feed["categories"])
-        selected = [item for item in all_items if item.category in categories][:max_items]
-        write_rss(
-            root / f"docs/feeds/{slug}.xml",
-            title=feed["title"],
-            description=feed["description"],
-            link=f"{base_url}/feeds/{slug}.xml",
-            items=selected,
-            last_build=now,
+    if hard_failure_without_documents:
+        # Atualiza somente o diagnóstico. Não apaga histórico nem reconstrói os
+        # XMLs com um resultado comprovadamente incompleto.
+        new_items: list[FeedItem] = []
+        all_items = stored_raw
+        pruned_items = 0
+        state_updated = False
+        LOG.warning("Estado e feeds preservados devido à falha integral da coleta")
+    else:
+        new_items = classify(documents, rules, now, next_year=next_year)
+        stored_items, pruned_items = sanitize_stored_items(stored_raw, next_year)
+        all_items = merge_items(
+            stored_items,
+            new_items,
+            now=now,
+            retention_days=int(project.get("retention_days", 730)),
         )
+        save_items(items_path, all_items)
+
+        base_url = str(project["base_url"]).rstrip("/")
+        max_items = int(project.get("max_items_per_feed", 300))
+        for slug, feed in config["feeds"].items():
+            categories = set(feed["categories"])
+            selected = [item for item in all_items if item.category in categories][:max_items]
+            write_rss(
+                root / f"docs/feeds/{slug}.xml",
+                title=feed["title"],
+                description=feed["description"],
+                link=f"{base_url}/feeds/{slug}.xml",
+                items=selected,
+                last_build=now,
+            )
+        state_updated = True
 
     status.update(
         {
@@ -254,6 +314,7 @@ def main() -> int:
             "new_matches": len(new_items),
             "stored_items": len(all_items),
             "items_removed_out_of_scope": pruned_items,
+            "state_updated": state_updated,
         }
     )
     status_name = "status.json" if args.source == "all" else f"status-{args.source}.json"
@@ -267,6 +328,8 @@ def main() -> int:
         pruned_items,
     )
 
+    if dodf_required_failure:
+        return 4
     if dou_required_failure:
         return 3
     if status["errors"] and not documents:
