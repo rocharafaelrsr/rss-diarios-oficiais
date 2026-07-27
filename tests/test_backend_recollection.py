@@ -257,3 +257,46 @@ def test_numbered_acts_on_same_page_do_not_collide():
     merged = _merge([first], [second])
 
     assert {item.guid for item in merged} == {"portaria-100", "portaria-101"}
+
+
+def test_alphabetic_act_suffixes_are_preserved_and_canonicalized():
+    def key(evidence: str) -> str:
+        return backend_recollection_key(
+            source="dou",
+            category="autorizacao_concurso",
+            published_at="2026-07-27T06:00:00-03:00",
+            edition="140",
+            section="DO1",
+            page=10,
+            title="[DOU] Autoriza novo concurso",
+            evidence=evidence,
+        )
+
+    suffix_a = key("PORTARIA Nº 100-A. Autoriza concurso público.")
+    suffix_a_variant = key("PORTARIA N° 0100-a. Autoriza concurso público.")
+    suffix_b = key("PORTARIA Nº 100-B. Autoriza concurso público.")
+
+    assert suffix_a == suffix_a_variant
+    assert suffix_a != suffix_b
+
+
+def test_decree_law_is_distinct_from_ordinary_law():
+    common = {
+        "source": "dou",
+        "category": "ldo_concursos",
+        "published_at": "2026-07-27T06:00:00-03:00",
+        "edition": "140",
+        "section": "DO1",
+        "page": 10,
+        "title": "[DOU] Altera norma sobre concursos",
+    }
+    decree_law = backend_recollection_key(
+        **common,
+        evidence="DECRETO-LEI Nº 100. Altera regras sobre concursos públicos.",
+    )
+    ordinary_law = backend_recollection_key(
+        **common,
+        evidence="LEI Nº 100. Altera regras sobre concursos públicos.",
+    )
+
+    assert decree_law != ordinary_law
