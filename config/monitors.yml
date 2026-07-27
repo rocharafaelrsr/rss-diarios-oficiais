@@ -5,7 +5,7 @@ project:
   base_url: "https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs"
   max_items_per_feed: 300
   retention_days: 730
-  lookback_days: 3
+  lookback_days: 5
   request_timeout_seconds: 30
   user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
 
@@ -13,15 +13,22 @@ sources:
   dodf:
     enabled: true
     daily_url: "https://dodf.df.gov.br/dodf/jornal/diario"
-    # O coletor consulta a página diária oficial e extrai todos os PDFs publicados,
-    # inclusive edições extras, suplementos e especiais quando listados nela.
+    sinj_search_url: "https://www.sinj.df.gov.br/sinj/Pesquisas.aspx"
+    # O portal do DODF permanece como fonte primária. Quando estiver indisponível,
+    # o coletor consulta a coleção oficial de diários do SINJ-DF.
   dou:
     enabled: true
     required: true
     inlabs_base_url: "https://inlabs.in.gov.br/"
-    # Credenciais ficam apenas nos GitHub Actions Secrets:
-    # INLABS_EMAIL e INLABS_PASSWORD. O INLABS fornece os atos em XML próprio
-    # para processamento automatizado e também lista edições extras.
+    public_search_url: "https://www.in.gov.br/consulta/-/buscar/dou"
+    public_search_terms:
+      - '"lei de diretrizes orçamentárias"'
+      - '"diretrizes orçamentárias"'
+      - '"concurso público"'
+      - '"autorização de concurso"'
+      - "LDO"
+    # O INLABS permanece como fonte primária. Em falha de rede, 5xx ou login,
+    # a busca pública oficial do DOU recupera apenas os atos tematicamente úteis.
 
 feeds:
   todos:
@@ -77,7 +84,6 @@ rules:
       - "inscrição"
       - "banca examinadora"
       - "processo seletivo"
-    # Frases inequívocas dispensam o segundo grupo de contexto.
     unconditional_phrases:
       - "edital nº 01/2022"
       - "edital n° 01/2022"
