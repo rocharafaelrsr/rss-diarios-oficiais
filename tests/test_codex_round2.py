@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -56,6 +56,26 @@ def test_cited_edital_is_not_treated_as_new_act_heading():
     assert evidence.startswith("PORTARIA Nº 200")
     assert "Prorroga por dois anos" in evidence
     assert "EDITAL Nº 300" not in evidence
+
+
+def test_common_citation_prefixes_keep_enclosing_act():
+    prefixes = (
+        "em conformidade com o",
+        "de acordo com o",
+        "consoante o",
+        "em observância ao",
+        "na forma do",
+    )
+    for prefix in prefixes:
+        page = (
+            "PORTARIA Nº 201. Prorroga a validade do concurso para Auditor Fiscal "
+            f"de Atividades Urbanas, {prefix} EDITAL Nº 01/2022, pelo prazo de dois "
+            "anos, mantidas as demais disposições. EDITAL Nº 400. Abre outro certame."
+        )
+        evidence = extract_matched_act(page, ["edital nº 01/2022"])
+        assert evidence.startswith("PORTARIA Nº 201"), prefix
+        assert "Prorroga a validade" in evidence
+        assert "EDITAL Nº 400" not in evidence
 
 
 def test_evidence_less_legacy_item_is_replaced_by_recollection():
@@ -116,7 +136,69 @@ def test_evidence_less_legacy_item_is_replaced_by_recollection():
     assert merged[0].guid == identity
 
 
-def test_html_fallback_follows_advertised_pagination_links():
+def test_recollection_replaces_prior_version_even_with_evidence():
+    legacy = _legacy_semantic_item()
+    key = recollection_key(
+        source=legacy.source,
+        category=legacy.category,
+        published_at=legacy.published_at,
+        link=legacy.link,
+        page=legacy.page,
+    )
+    old_evidence = "PORTARIA Nº 100. Autoriza concurso público de forma genérica."
+    old_identity = stable_identity(
+        source=legacy.source,
+        category=legacy.category,
+        published_at=legacy.published_at,
+        edition=legacy.edition,
+        section=legacy.section,
+        page=legacy.page,
+        evidence=old_evidence,
+    )
+    old = FeedItem.from_dict(
+        {
+            **legacy.to_dict(),
+            "guid": old_identity,
+            "identity": old_identity,
+            "recollection_key": key,
+            "evidence": old_evidence,
+        }
+    )
+
+    new_evidence = (
+        "PORTARIA Nº 100. Autoriza a realização de concurso público para 50 cargos "
+        "de Analista Ambiental."
+    )
+    new_identity = stable_identity(
+        source=legacy.source,
+        category=legacy.category,
+        published_at=legacy.published_at,
+        edition=legacy.edition,
+        section=legacy.section,
+        page=legacy.page,
+        evidence=new_evidence,
+    )
+    new = FeedItem.from_dict(
+        {
+            **legacy.to_dict(),
+            "guid": new_identity,
+            "identity": new_identity,
+            "recollection_key": key,
+            "evidence": new_evidence,
+        }
+    )
+    merged = merge_items(
+        [old],
+        [new],
+        now=datetime(2026, 7, 27, 16, tzinfo=BRT),
+        retention_days=730,
+    )
+    assert len(merged) == 1
+    assert merged[0].identity == new_identity
+    assert merged[0].evidence == new_evidence
+
+
+def test_html_fallback_follows_advertised_pagination_links_without_duplicate_requests():
     first = _Response(
         '''
         <button id="lastPage">2</button>
@@ -133,7 +215,7 @@ def test_html_fallback_follows_advertised_pagination_links():
         {"jsonArray": {}}
         </script>
     '''
-    client = _FallbackClient([second, second])
+    client = _FallbackClient([second])
     collector = StructuredDouCollector(
         client,
         "https://inlabs.in.gov.br/",
@@ -151,6 +233,8 @@ def test_html_fallback_follows_advertised_pagination_links():
     assert "https://www.in.gov.br/web/dou/-/ato-primeira-pagina" in fallback_urls
     assert "https://www.in.gov.br/web/dou/-/ato-segunda-pagina" in fallback_urls
     assert any(call[0].endswith("newPage=2&currentPage=1") for call in client.calls)
+    assert not any(params and "newPage" in params for _, params in client.calls)
+    assert len(client.calls) == 1
 
 
 def test_authorization_negated_after_verb_is_rejected():
@@ -166,6 +250,20 @@ def test_authorization_negated_after_verb_is_rejected():
             text,
             2027,
         )
+
+
+def test_restrictive_sem_clause_does_not_negate_authorization():
+    text = (
+        "Autoriza o Instituto Brasileiro do Meio Ambiente, sem aumento de despesa, "
+        "a realizar concurso público para o provimento de cargos de Analista Ambiental."
+    )
+    assert strictly_relevant(
+        "autorizacao_concurso",
+        "dou",
+        "PORTARIA Nº 101",
+        text,
+        2027,
+    )
 
 
 def test_explicit_exercise_year_precedes_preferred_year_reference():
@@ -185,6 +283,25 @@ def test_explicit_exercise_year_precedes_preferred_year_reference():
     assert title == "[DOU] Publica a LDO federal de 2026"
     assert "2026" in summary
     assert not strictly_relevant("ldo", "dou", document.title, document.text, 2027)
+
+
+def test_ldo_year_is_tied_to_budget_wording_before_later_exercise_reference():
+    document = Document(
+        source="dou",
+        source_label="Diário Oficial da União",
+        title="LEI Nº 15.301, DE 21 DE JULHO DE 2026",
+        url="https://www.in.gov.br/web/dou/-/lei-15301",
+        published_at=datetime(2026, 7, 21, 6, tzinfo=BRT),
+        text=(
+            "Dispõe sobre as diretrizes para a elaboração e a execução da Lei "
+            "Orçamentária de 2027. O demonstrativo considera resultados apurados "
+            "no exercício de 2025. Eu sanciono a seguinte Lei."
+        ),
+    )
+    title, summary = build_presentation(document, "ldo", 2027)
+    assert title == "[DOU] Publica a LDO federal de 2027"
+    assert "2027" in summary
+    assert strictly_relevant("ldo", "dou", document.title, document.text, 2027)
 
 
 def test_setup_docs_name_both_split_workflows():
