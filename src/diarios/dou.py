@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import io
 import logging
-import os
 import re
 import time as time_module
 import zipfile
 from datetime import date, datetime, time
 from html import unescape
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import quote_plus, urljoin, urlparse
 from defusedxml import ElementTree as ET
 from zoneinfo import ZoneInfo
 
@@ -20,6 +19,14 @@ from text_utils import clean_text
 
 LOG = logging.getLogger(__name__)
 BRT = ZoneInfo("America/Sao_Paulo")
+IN_HOSTS = {"in.gov.br", "www.in.gov.br"}
+DEFAULT_PUBLIC_TERMS = (
+    '"lei de diretrizes orçamentárias"',
+    '"diretrizes orçamentárias"',
+    '"concurso público"',
+    '"autorização de concurso"',
+    "LDO",
+)
 
 
 class InlabsAuthenticationError(RuntimeError):
@@ -27,19 +34,26 @@ class InlabsAuthenticationError(RuntimeError):
 
 
 class DouCollector:
-    """Coleta os XMLs oficiais do DOU no Portal INLABS.
+    """Coleta o DOU pelo INLABS e usa a busca pública oficial como fallback."""
 
-    O fluxo segue o protocolo usado pelo projeto governamental Ro-DOU:
-    autenticação em logar.php, listagem em index.php?p=AAAA-MM-DD e download
-    dos ZIPs anunciados como "Baixar Arquivo".
-    """
-
-    def __init__(self, client: HttpClient, base_url: str, email: str, password: str) -> None:
+    def __init__(
+        self,
+        client: HttpClient,
+        base_url: str,
+        email: str,
+        password: str,
+        public_search_url: str = "https://www.in.gov.br/consulta/-/buscar/dou",
+        public_search_terms: list[str] | tuple[str, ...] | None = None,
+    ) -> None:
         self.client = client
         self.base_url = base_url.rstrip("/") + "/"
         self.email = email.strip()
         self.password = password
+        self.public_search_url = public_search_url
+        self.public_search_terms = tuple(public_search_terms or DEFAULT_PUBLIC_TERMS)
         self._logged_in = False
+        self.backend = "inlabs"
+        self.fallback_reason = ""
 
     def _login(self) -> None:
         if self._logged_in and self.client.session.cookies.get("inlabs_session_cookie"):
@@ -54,8 +68,6 @@ class DouCollector:
         last_error: Exception | None = None
         for attempt in range(1, 3):
             try:
-                # Cria cookies e contexto de navegação antes do POST. Alguns
-                # servidores encerram conexões diretas de datacenters sem esse passo.
                 self.client.get(self.base_url)
                 response = self.client.session.post(
                     login_url,
@@ -99,8 +111,6 @@ class DouCollector:
             href = str(anchor.get("href", ""))
             if not href.lower().endswith(".zip") and ".zip" not in href.lower():
                 continue
-            # Os links normalmente são ?dl=arquivo.zip e devem ser resolvidos
-            # contra index.php, não apenas contra a raiz.
             absolute = urljoin(urljoin(self.base_url, "index.php"), href)
             if absolute not in urls:
                 urls.append(absolute)
@@ -119,7 +129,6 @@ class DouCollector:
             key = cls._local_name(node.tag)
             if key == cls._local_name(root.tag):
                 continue
-            # O campo texto/body contém HTML. itertext preserva o conteúdo útil.
             value = clean_text(" ".join(node.itertext()))
             if value and (key not in values or len(value) > len(values[key])):
                 values[key] = value
@@ -193,7 +202,7 @@ class DouCollector:
             page=page,
         )
 
-    def collect(self, day: date) -> list[Document]:
+    def _collect_inlabs(self, day: date) -> list[Document]:
         documents: list[Document] = []
         cookie_headers = {"origem": "736372697074"}
         for zip_url in self._zip_urls(day):
@@ -222,4 +231,164 @@ class DouCollector:
                     document = self._document_from_xml(payload, day, member.filename)
                     if document:
                         documents.append(document)
+        return documents
+
+    @staticmethod
+    def _public_result_links(html: str, base_url: str) -> list[str]:
+        soup = BeautifulSoup(html, "html.parser")
+        urls: list[str] = []
+        for anchor in soup.select("a[href]"):
+            href = str(anchor.get("href", ""))
+            if "/web/dou/-/" not in href and "/en/web/dou/-/" not in href:
+                continue
+            absolute = urljoin(base_url, href)
+            parsed = urlparse(absolute)
+            if parsed.scheme != "https" or (parsed.hostname or "").casefold() not in IN_HOSTS:
+                continue
+            canonical = absolute.replace(
+                "https://www.in.gov.br/en/web/dou/-/",
+                "https://www.in.gov.br/web/dou/-/",
+            )
+            canonical = canonical.replace(
+                "https://in.gov.br/en/web/dou/-/",
+                "https://www.in.gov.br/web/dou/-/",
+            )
+            canonical = canonical.replace(
+                "https://in.gov.br/web/dou/-/",
+                "https://www.in.gov.br/web/dou/-/",
+            )
+            if canonical not in urls:
+                urls.append(canonical)
+        return urls
+
+    def _public_urls(self, day: date) -> list[str]:
+        br_date = day.strftime("%d-%m-%Y")
+        urls: list[str] = []
+        succeeded = False
+        last_error: Exception | None = None
+        for term in self.public_search_terms:
+            try:
+                response = self.client.get(
+                    self.public_search_url,
+                    params={
+                        "q": term,
+                        "s": "todos",
+                        "exactDate": "personalizado",
+                        "sortType": "0",
+                        "delta": "200",
+                        "publishFrom": br_date,
+                        "publishTo": br_date,
+                    },
+                )
+                succeeded = True
+            except Exception as exc:
+                last_error = exc
+                LOG.warning("DOU público: busca por %r falhou: %s", term, exc)
+                continue
+            for url in self._public_result_links(response.text, response.url):
+                if url not in urls:
+                    urls.append(url)
+        if not succeeded and last_error is not None:
+            raise last_error
+        return urls
+
+    @staticmethod
+    def _article_container(soup: BeautifulSoup):
+        selectors = (
+            ".texto-dou",
+            "#texto-dou",
+            ".journal-content-article",
+            ".materia",
+            "article",
+            "main",
+        )
+        candidates = []
+        for selector in selectors:
+            candidates.extend(soup.select(selector))
+        if not candidates:
+            return soup.body or soup
+        return max(candidates, key=lambda node: len(clean_text(node.get_text(" ", strip=True))))
+
+    @classmethod
+    def _document_from_public_html(cls, html: str, url: str, day: date) -> Document | None:
+        soup = BeautifulSoup(html, "html.parser")
+        whole_text = clean_text(soup.get_text(" ", strip=True))
+        metadata = re.search(
+            r"Publicado em:\s*(\d{2}/\d{2}/\d{4})\s*\|\s*Edição:\s*([^|]+?)\s*\|\s*Seção:\s*([^|]+?)\s*\|\s*Página:\s*(\d+)",
+            whole_text,
+            flags=re.I,
+        )
+        if not metadata:
+            LOG.warning("DOU público: metadados não encontrados em %s", url)
+            return None
+        try:
+            published_day = datetime.strptime(metadata.group(1), "%d/%m/%Y").date()
+        except ValueError:
+            return None
+        if published_day != day:
+            return None
+
+        title = ""
+        for selector in ("h2", "h1", ".title", ".titulo"):
+            for node in soup.select(selector):
+                value = clean_text(node.get_text(" ", strip=True))
+                if value and "publicador de conteúdos" not in value.casefold() and len(value) > 4:
+                    title = value
+                    break
+            if title:
+                break
+        if not title and soup.title:
+            title = clean_text(soup.title.get_text(" ", strip=True).split(" - DOU")[0])
+        if not title:
+            title = "Matéria do Diário Oficial da União"
+
+        container = cls._article_container(soup)
+        text_value = clean_text(container.get_text(" ", strip=True))
+        if len(text_value) < 80:
+            return None
+        page = int(metadata.group(4))
+        return Document(
+            source="dou",
+            source_label="Diário Oficial da União",
+            title=title,
+            url=url,
+            published_at=datetime.combine(day, time(hour=6), tzinfo=BRT),
+            text=text_value,
+            edition=clean_text(metadata.group(2)),
+            section=clean_text(metadata.group(3)),
+            page=page,
+        )
+
+    def _collect_public(self, day: date) -> list[Document]:
+        documents: list[Document] = []
+        for url in self._public_urls(day):
+            try:
+                response = self.client.get(url)
+                document = self._document_from_public_html(response.text, response.url, day)
+            except Exception as exc:
+                LOG.warning("DOU público: falha ao abrir %s: %s", url, exc)
+                continue
+            if document:
+                documents.append(document)
+        return documents
+
+    def collect(self, day: date) -> list[Document]:
+        try:
+            documents = self._collect_inlabs(day)
+            if documents:
+                self.backend = "inlabs"
+                return documents
+            primary_error: Exception = RuntimeError("INLABS sem documentos para a data")
+        except Exception as exc:
+            primary_error = exc
+        self.fallback_reason = str(primary_error)[:500]
+        LOG.warning("DOU %s: acionando busca pública oficial: %s", day.isoformat(), primary_error)
+        try:
+            documents = self._collect_public(day)
+        except Exception as fallback_error:
+            raise RuntimeError(
+                f"INLABS e busca pública do DOU indisponíveis: primário={primary_error}; fallback={fallback_error}"
+            ) from fallback_error
+        self.backend = "busca_publica"
+        LOG.info("DOU %s: busca pública retornou %d documentos", day.isoformat(), len(documents))
         return documents
