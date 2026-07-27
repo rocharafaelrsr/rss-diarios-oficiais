@@ -3,7 +3,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from diarios.dou_structured import StructuredDouCollector
-from models import FeedItem
+from models import Document, FeedItem
 from presentation import (
     build_presentation,
     extract_matched_act,
@@ -12,7 +12,6 @@ from presentation import (
     stable_identity,
     strictly_relevant,
 )
-from models import Document
 from state import merge_items
 
 BRT = ZoneInfo("America/Sao_Paulo")
@@ -122,7 +121,7 @@ def test_html_fallback_follows_advertised_pagination_links():
         '''
         <button id="lastPage">2</button>
         <a href="/web/dou/-/ato-primeira-pagina">Ato 1</a>
-        <a href="/consulta/-/buscar/dou?q=x&newPage=2&currentPage=1">2</a>
+        <a href="/consulta/-/buscar/dou?q=x&amp;newPage=2&amp;currentPage=1">2</a>
         <script id="_br_com_seatecnologia_in_buscadou_BuscaDouPortlet_params">
         {"jsonArray": {}}
         </script>
