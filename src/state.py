@@ -26,7 +26,22 @@ def merge_items(
     retention_days: int,
 ) -> list[FeedItem]:
     cutoff = now - timedelta(days=retention_days)
-    merged = {_key(item): item for item in old}
+    new_recollection_keys = {item.recollection_key for item in new if item.recollection_key}
+
+    # Itens sem evidência vieram da versão semântica 1.1 e não conseguem gerar a
+    # identidade específica do ato. Quando o mesmo link/página é recolhido, a
+    # versão completa substitui o legado por meio da chave de recolhimento.
+    old_kept = [
+        item
+        for item in old
+        if not (
+            not item.evidence
+            and item.recollection_key
+            and item.recollection_key in new_recollection_keys
+        )
+    ]
+
+    merged = {_key(item): item for item in old_kept}
     for item in new:
         merged[_key(item)] = item
     kept = [item for item in merged.values() if datetime.fromisoformat(item.published_at) >= cutoff]
