@@ -14,8 +14,8 @@ from text_utils import clean_text, normalize
 # seja deslocado para a palavra interna. Inclui também os atos monitorados pela
 # regra de alterações da LDO.
 ACT_MARKER_RE = re.compile(
-    r"(?<!\w)(?:DECRETO\s*[-–—]\s*LEI|PROJETO\s+DE\s+LEI|MEDIDA\s+PROVISÓRIA|"
-    r"INSTRUÇÃO\s+NORMATIVA|ORDEM\s+DE\s+SERVIÇO|"
+    r"(?<!\w)(?:DECRETO(?:\s*[-–—]\s*|\s+)LEI|PROJETO\s+DE\s+LEI|"
+    r"MEDIDA\s+PROVISÓRIA|INSTRUÇÃO\s+NORMATIVA|ORDEM\s+DE\s+SERVIÇO|"
     r"EMENDA|VETO|MENSAGEM|LEI|PORTARIA|EDITAL|DECRETO|RESOLUÇÃO|"
     r"ATO|DESPACHO|AVISO)\s+(?:N[º°O]?\s*)?\d",
     flags=re.I | re.U,
