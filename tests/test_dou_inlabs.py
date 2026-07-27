@@ -61,3 +61,50 @@ def test_login_is_reused_between_dates():
     collector._login()
     assert client.session.posts == 1
     assert client.gets == 1
+
+
+def test_parse_public_search_links():
+    html = '''
+    <div class="resultado"><h5 class="title-marker">
+      <a href="/web/dou/-/portaria-n-10-123456">Portaria</a>
+    </h5></div>
+    <a href="https://evil.example/web/dou/-/x">Externo</a>
+    '''
+    urls = DouCollector._public_result_links(html, "https://www.in.gov.br/consulta/-/buscar/dou")
+    assert urls == ["https://www.in.gov.br/web/dou/-/portaria-n-10-123456"]
+
+
+def test_parse_public_dou_article():
+    html = '''
+    <html><head><title>PORTARIA Nº 10 - DOU</title></head><body>
+      <main>
+        <h2>PORTARIA Nº 10, DE 26 DE JULHO DE 2026</h2>
+        <p>Publicado em: 27/07/2026 | Edição: 140 | Seção: 1 | Página: 15</p>
+        <p>Órgão: Ministério Exemplo</p>
+        <div class="texto-dou">
+          Autoriza a realização de concurso público para provimento de cargos.
+          Este conteúdo não substitui o publicado na versão certificada.
+        </div>
+      </main>
+    </body></html>
+    '''
+    doc = DouCollector._document_from_public_html(
+        html,
+        "https://www.in.gov.br/web/dou/-/portaria-n-10-123456",
+        date(2026, 7, 27),
+    )
+    assert doc is not None
+    assert doc.title.startswith("PORTARIA Nº 10")
+    assert doc.edition == "140"
+    assert doc.section == "1"
+    assert doc.page == 15
+    assert "concurso público" in doc.text
+
+
+def test_uses_public_search_when_inlabs_fails():
+    collector = DouCollector(DummyClient(), "https://inlabs.in.gov.br/", "x@y.z", "secret")
+    collector._collect_inlabs = lambda _day: (_ for _ in ()).throw(ConnectionError("502"))
+    collector._collect_public = lambda _day: []
+    assert collector.collect(date(2026, 7, 27)) == []
+    assert collector.backend == "busca_publica"
+    assert "502" in collector.fallback_reason

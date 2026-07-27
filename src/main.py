@@ -134,18 +134,27 @@ def main() -> int:
     days = days_to_collect(today, lookback)
 
     if args.source in ("all", "dodf") and config["sources"]["dodf"].get("enabled", True):
-        collector = DodfCollector(client, config["sources"]["dodf"]["daily_url"])
+        dodf_cfg = config["sources"]["dodf"]
+        collector = DodfCollector(
+            client,
+            dodf_cfg["daily_url"],
+            dodf_cfg.get("sinj_search_url", "https://www.sinj.df.gov.br/sinj/Pesquisas.aspx"),
+        )
         count_before = len(documents)
         for day in days:
             try:
                 documents.extend(collector.collect(day))
-            except Exception as exc:  # preserva a outra fonte
+            except Exception as exc:
                 LOG.exception("Falha geral no DODF em %s", day)
-                status["errors"].append({"source": "dodf", "date": day.isoformat(), "error": str(exc)[:300]})
-                if isinstance(exc, requests.RequestException):
+                status["errors"].append({"source": "dodf", "date": day.isoformat(), "error": str(exc)[:500]})
+                if isinstance(exc, (requests.RequestException, ConnectionError, RuntimeError)):
                     LOG.warning("DODF: circuito aberto; demais datas serão retomadas na próxima execução")
                     break
-        status["sources"]["dodf"] = {"documents": len(documents) - count_before}
+        status["sources"]["dodf"] = {
+            "documents": len(documents) - count_before,
+            "backend": collector.backend,
+            "fallback_reason": collector.fallback_reason or None,
+        }
 
     dou_required_failure = False
     if args.source in ("all", "dou") and config["sources"]["dou"].get("enabled", True):
@@ -155,6 +164,8 @@ def main() -> int:
             dou_cfg["inlabs_base_url"],
             os.getenv("INLABS_EMAIL", ""),
             os.getenv("INLABS_PASSWORD", ""),
+            dou_cfg.get("public_search_url", "https://www.in.gov.br/consulta/-/buscar/dou"),
+            dou_cfg.get("public_search_terms"),
         )
         count_before = len(documents)
         for day in days:
@@ -162,16 +173,21 @@ def main() -> int:
                 documents.extend(collector.collect(day))
             except InlabsAuthenticationError as exc:
                 LOG.error("DOU/INLABS: %s", exc)
-                status["errors"].append({"source": "dou", "date": day.isoformat(), "error": str(exc)[:300]})
+                status["errors"].append({"source": "dou", "date": day.isoformat(), "error": str(exc)[:500]})
                 dou_required_failure = bool(dou_cfg.get("required", True))
                 break
             except Exception as exc:
                 LOG.exception("Falha geral no DOU em %s", day)
-                status["errors"].append({"source": "dou", "date": day.isoformat(), "error": str(exc)[:300]})
-                if isinstance(exc, requests.RequestException) or isinstance(exc, ConnectionError):
+                status["errors"].append({"source": "dou", "date": day.isoformat(), "error": str(exc)[:500]})
+                dou_required_failure = bool(dou_cfg.get("required", True))
+                if isinstance(exc, (requests.RequestException, ConnectionError, RuntimeError)):
                     LOG.warning("DOU: circuito aberto; demais datas serão retomadas na próxima execução")
                     break
-        status["sources"]["dou"] = {"documents": len(documents) - count_before}
+        status["sources"]["dou"] = {
+            "documents": len(documents) - count_before,
+            "backend": collector.backend,
+            "fallback_reason": collector.fallback_reason or None,
+        }
 
     new_items = classify(documents, rules, now)
     items_path = root / "data/items.json"
@@ -208,10 +224,13 @@ def main() -> int:
     status_name = "status.json" if args.source == "all" else f"status-{args.source}.json"
     status_path = root / "docs" / status_name
     status_path.write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    LOG.info("Concluído: %d documentos, %d correspondências novas, %d itens armazenados", len(documents), len(new_items), len(all_items))
+    LOG.info(
+        "Concluído: %d documentos, %d correspondências novas, %d itens armazenados",
+        len(documents),
+        len(new_items),
+        len(all_items),
+    )
 
-    # Falha total de ambas as fontes deve aparecer no Actions; falha parcial é
-    # registrada no status e não impede a publicação do que foi obtido.
     if dou_required_failure:
         return 3
     if status["errors"] and not documents:
