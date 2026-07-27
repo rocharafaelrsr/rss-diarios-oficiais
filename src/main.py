@@ -21,6 +21,7 @@ from models import Document, FeedItem
 from presentation import (
     build_presentation,
     extract_matched_act,
+    recollection_key,
     sanitize_stored_items,
     stable_identity,
     strictly_relevant,
@@ -95,10 +96,18 @@ def classify(
                 page=document.page,
                 evidence=evidence,
             )
+            collected_key = recollection_key(
+                source=document.source,
+                category=rule.id,
+                published_at=published_at,
+                link=document.url,
+                page=document.page,
+            )
             output.append(
                 FeedItem(
                     guid=identity,
                     identity=identity,
+                    recollection_key=collected_key,
                     category=rule.id,
                     category_label=rule.label,
                     priority=rule.priority,

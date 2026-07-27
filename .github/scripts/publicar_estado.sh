@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -u
+set -euo pipefail
 
 SOURCE="${1:?Informe dodf ou dou}"
 STATUS_FILE="docs/status-${SOURCE}.json"
@@ -23,28 +23,7 @@ commit_current_state() {
   return 0
 }
 
-if ! commit_current_state; then
-  exit 0
-fi
-
-for attempt in 1 2 3; do
-  if git push origin HEAD:main; then
-    exit 0
-  fi
-
-  if [[ "$attempt" -eq 3 ]]; then
-    echo "::error::Não foi possível publicar após 3 tentativas."
-    exit 1
-  fi
-
-  echo "A main avançou durante a coleta; refazendo ${SOURCE^^} sobre o estado mais recente (tentativa $((attempt + 1))/3)."
-  git fetch origin main
-  git reset --hard origin/main
-
-  # Reexecuta somente a fonte deste workflow. Um eventual erro ainda produz o
-  # arquivo de status; a etapa posterior do workflow sinaliza a falha da coleta.
-  python src/main.py --source "$SOURCE" || true
-
+validate_feeds() {
   python - <<'PY'
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -56,8 +35,38 @@ for path in paths:
     root = ET.parse(path).getroot()
     assert root.tag == "rss", f"{path}: raiz inválida"
 PY
+}
+
+retry_collection_status=0
+
+if ! commit_current_state; then
+  exit 0
+fi
+
+for attempt in 1 2 3; do
+  if git push origin HEAD:main; then
+    # A coleta inicial é verificada pelo workflow. Nas tentativas refeitas, o
+    # status precisa ser propagado depois que o diagnóstico já foi publicado.
+    exit "$retry_collection_status"
+  fi
+
+  if [[ "$attempt" -eq 3 ]]; then
+    echo "::error::Não foi possível publicar após 3 tentativas."
+    exit 1
+  fi
+
+  echo "A main avançou durante a coleta; refazendo ${SOURCE^^} sobre o estado mais recente (tentativa $((attempt + 1))/3)."
+  git fetch origin main
+  git reset --hard origin/main
+
+  set +e
+  python src/main.py --source "$SOURCE"
+  retry_collection_status=$?
+  set -e
+
+  validate_feeds
 
   if ! commit_current_state; then
-    exit 0
+    exit "$retry_collection_status"
   fi
 done

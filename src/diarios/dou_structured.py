@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import date, datetime, time
 from html import unescape
 from urllib.parse import urljoin, urlparse
@@ -19,7 +20,7 @@ SEARCH_SCRIPT_ID = "_br_com_seatecnologia_in_buscadou_BuscaDouPortlet_params"
 
 
 class StructuredDouCollector(DouCollector):
-    """Fallback público baseado no JSON consumido pelo buscador oficial do DOU."""
+    """Fallback público baseado no JSON consumido pelo próprio buscador do DOU."""
 
     @staticmethod
     def _public_records(html: str) -> list[dict[str, object]] | None:
@@ -51,6 +52,42 @@ class StructuredDouCollector(DouCollector):
             except ValueError:
                 pass
         return 2 if soup.find("button", id="2btn") is not None else 1
+
+    @staticmethod
+    def _html_pagination_urls(html: str, base_url: str) -> list[str]:
+        """Extrai URLs de paginação expostas em links, atributos ou onclick."""
+        soup = BeautifulSoup(html, "html.parser")
+        candidates: list[str] = []
+        for node in soup.select("[href], [data-href], [data-url], [onclick]"):
+            for attribute in ("href", "data-href", "data-url"):
+                value = str(node.get(attribute, "")).strip()
+                if value:
+                    candidates.append(value)
+            onclick = str(node.get("onclick", ""))
+            candidates.extend(
+                match.group(1)
+                for match in re.finditer(
+                    r"['\"]([^'\"]*(?:newPage|currentPage)=[^'\"]+)['\"]",
+                    onclick,
+                    flags=re.I,
+                )
+            )
+
+        urls: list[str] = []
+        for candidate in candidates:
+            if "newpage" not in candidate.casefold() and "currentpage" not in candidate.casefold():
+                continue
+            # BeautifulSoup já decodifica entidades HTML nos atributos. Aplicar
+            # html.unescape novamente corromperia `&currentPage` como `&curren`.
+            absolute = urljoin(base_url, candidate)
+            parsed = urlparse(absolute)
+            if parsed.scheme != "https" or (parsed.hostname or "").casefold() not in IN_HOSTS:
+                continue
+            if "/consulta/-/buscar/dou" not in parsed.path:
+                continue
+            if absolute not in urls:
+                urls.append(absolute)
+        return urls
 
     @staticmethod
     def _int_or_none(value: object) -> int | None:
@@ -103,6 +140,63 @@ class StructuredDouCollector(DouCollector):
             organization=clean_text(str(hierarchy)),
         )
 
+    def _add_html_result_links(
+        self,
+        response,
+        *,
+        seen_urls: set[str],
+        fallback_urls: list[str],
+    ) -> None:
+        for url in self._public_result_links(response.text, response.url):
+            if url not in seen_urls and url not in fallback_urls:
+                fallback_urls.append(url)
+
+    def _crawl_html_fallback(
+        self,
+        first_response,
+        *,
+        base_params: dict[str, object],
+        total_pages: int,
+        seen_urls: set[str],
+        fallback_urls: list[str],
+    ) -> None:
+        """Coleta links de todas as páginas anunciadas sem depender do JSON."""
+        queue = [first_response]
+        seen_page_urls = {first_response.url}
+        followed_advertised_pagination = False
+
+        while queue and len(seen_page_urls) <= 50:
+            response = queue.pop(0)
+            self._add_html_result_links(response, seen_urls=seen_urls, fallback_urls=fallback_urls)
+            for page_url in self._html_pagination_urls(response.text, response.url):
+                if page_url in seen_page_urls:
+                    continue
+                seen_page_urls.add(page_url)
+                try:
+                    page_response = self.client.get(page_url)
+                except Exception as exc:
+                    LOG.warning("DOU público: página HTML de contingência falhou: %s", exc)
+                    continue
+                followed_advertised_pagination = True
+                queue.append(page_response)
+
+        # Se o portal forneceu URLs navegáveis e elas responderam, a fila acima já
+        # percorreu as páginas. Evita duplicar até 49 requisições por termo.
+        if followed_advertised_pagination:
+            return
+
+        # Alguns layouts anunciam a quantidade, mas não fornecem href navegável.
+        # Nesse caso, tenta cada página declarada com os parâmetros do portal.
+        for page_number in range(2, min(total_pages, 50) + 1):
+            generic_params = dict(base_params)
+            generic_params.update({"newPage": page_number, "currentPage": page_number - 1})
+            try:
+                response = self.client.get(self.public_search_url, params=generic_params)
+            except Exception as exc:
+                LOG.warning("DOU público: página HTML %d falhou: %s", page_number, exc)
+                continue
+            self._add_html_result_links(response, seen_urls=seen_urls, fallback_urls=fallback_urls)
+
     def _collect_public(self, day: date) -> list[Document]:
         br_date = day.strftime("%d-%m-%Y")
         documents: list[Document] = []
@@ -133,9 +227,13 @@ class StructuredDouCollector(DouCollector):
             for page_index in range(total_pages):
                 records = self._public_records(response.text)
                 if records is None:
-                    for url in self._public_result_links(response.text, response.url):
-                        if url not in seen_urls and url not in fallback_urls:
-                            fallback_urls.append(url)
+                    self._crawl_html_fallback(
+                        response,
+                        base_params=base_params,
+                        total_pages=total_pages,
+                        seen_urls=seen_urls,
+                        fallback_urls=fallback_urls,
+                    )
                     break
 
                 for record in records:
@@ -151,9 +249,13 @@ class StructuredDouCollector(DouCollector):
                 display_date = last.get("displayDateSortable")
                 if not record_id or not display_date:
                     LOG.warning("DOU público: paginação sem cursores; usando links HTML de contingência")
-                    for url in self._public_result_links(response.text, response.url):
-                        if url not in seen_urls and url not in fallback_urls:
-                            fallback_urls.append(url)
+                    self._crawl_html_fallback(
+                        response,
+                        base_params=base_params,
+                        total_pages=total_pages,
+                        seen_urls=seen_urls,
+                        fallback_urls=fallback_urls,
+                    )
                     break
 
                 page_params = dict(base_params)

@@ -26,7 +26,21 @@ def merge_items(
     retention_days: int,
 ) -> list[FeedItem]:
     cutoff = now - timedelta(days=retention_days)
-    merged = {_key(item): item for item in old}
+    new_recollection_keys = {item.recollection_key for item in new if item.recollection_key}
+
+    # Uma nova coleta do mesmo link/data/página/categoria substitui integralmente
+    # as versões anteriores, inclusive as que tinham evidência. Isso permite
+    # corrigir recortes e resumos sem manter o card obsoleto por 730 dias.
+    old_kept = [
+        item
+        for item in old
+        if not (
+            item.recollection_key
+            and item.recollection_key in new_recollection_keys
+        )
+    ]
+
+    merged = {_key(item): item for item in old_kept}
     for item in new:
         merged[_key(item)] = item
     kept = [item for item in merged.values() if datetime.fromisoformat(item.published_at) >= cutoff]
