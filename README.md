@@ -58,11 +58,11 @@ Ambos também podem ser disparados manualmente.
 
 - Reconsulta os últimos 5 dias, protegendo contra edições tardias, fins de semana e atrasos de indexação.
 - Retém itens por 730 dias.
-- Mantém identidade específica por ato e uma chave de recolhimento para substituir itens legados sem duplicação.
+- Mantém identidade específica por ato e uma chave de recolhimento para substituir itens legados ou versões anteriores sem duplicação.
 - Processa todas as versões PDF listadas na página diária do DODF.
 - Usa o SINJ-DF como fallback oficial quando o portal diário do DODF estiver indisponível.
 - Baixa do INLABS todos os ZIPs/XMLs do DOU listados para a data, incluindo edições adicionais disponibilizadas pelo portal.
-- Usa a busca pública oficial e seu JSON estruturado como fallback do DOU, com contingência HTML paginada.
+- Usa a busca pública oficial e seu JSON estruturado como fallback do DOU, com contingência HTML paginada sem duplicar páginas já navegadas.
 - Os workflows de DODF e DOU são autônomos; falha de uma fonte não bloqueia a outra.
 - Se a `main` avançar durante a coleta, o workflow refaz somente sua fonte sobre o estado novo e tenta publicar novamente.
 
@@ -80,7 +80,7 @@ Edite `config/monitors.yml`. Os tipos aceitos são:
 
 A regra `atividades urbanas` isolada é intencionalmente insuficiente, porque o termo aparece em matérias sem relação com a carreira. O nome do cargo também exige contexto de concurso, candidato, edital, convocação ou nomeação; assim, aposentadorias e atos funcionais comuns não entram no feed.
 
-A publicação da LDO usa automaticamente o token `${NEXT_YEAR}`. Em 2026, por exemplo, procura a LDO de 2027; a regra avança sozinha nos anos seguintes.
+A publicação da LDO usa automaticamente o token `${NEXT_YEAR}`. Em 2026, por exemplo, procura a LDO de 2027; a regra avança sozinha nos anos seguintes. O ano é extraído prioritariamente do contexto da própria LDO ou Lei Orçamentária, e não de referências históricas a outros exercícios.
 
 ## Execução local
 
@@ -105,6 +105,10 @@ Os arquivos `docs/status-dodf.json` e `docs/status-dou.json` informam:
 - falhas sanitizadas.
 
 O log completo fica na execução do GitHub Actions. Uma alteração estrutural em portal oficial aparecerá como ausência de links ou matérias, em vez de falhar silenciosamente.
+
+## Validação
+
+O workflow **Validar coletor** executa em abertura, atualização, reabertura ou marcação do pull request como pronto para revisão. Ele compila `src` e `tests`, executa o pytest com `pipefail` e anexa `pytest.log` e `pytest-results.xml` por 7 dias. A suíte atual possui 47 testes.
 
 ## Limitações conhecidas
 
