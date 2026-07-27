@@ -12,9 +12,11 @@ Projeto independente que consulta fontes oficiais, filtra atos relevantes e publ
 ## Arquitetura
 
 ```text
-DODF: página diária oficial -> PDFs -> texto por página ----┐
-                                                            ├-> regras -> histórico -> RSS 2.0
-DOU: INLABS oficial -> ZIPs/XMLs de todas as matérias ------┘
+DODF: portal oficial -> PDFs ─┐
+            fallback SINJ-DF ─┤
+                              ├-> regras estritas -> histórico -> RSS 2.0
+DOU: INLABS -> ZIPs/XMLs ─────┤
+      fallback busca pública ─┘
 ```
 
 A IA do Portal RSR continua responsável pela curadoria final e pela categoria exibida no painel. Este projeto usa filtros determinísticos antes disso, reduzindo ruído e custo.
@@ -27,9 +29,10 @@ Use um repositório **público** separado chamado `rss-diarios-oficiais`. O cont
 2. Envie todo o conteúdo desta pasta para a branch `main`.
 3. Faça um cadastro gratuito no Portal INLABS da Imprensa Nacional.
 4. Em **Settings > Secrets and variables > Actions**, crie os segredos `INLABS_EMAIL` e `INLABS_PASSWORD`.
-5. Abra **Actions > Coletar DODF e DOU > Run workflow**.
-6. Confira `docs/status.json` e os arquivos em `docs/feeds/`.
-7. No Portal RSR, abra **Gerenciar Fontes** e importe `feeds.opml` para cadastrar apenas o feed geral. Para três fontes separadas, use `feeds-tematicos.opml`.
+5. Abra **Actions > Coletar DODF > Run workflow** e confirme a execução.
+6. Abra **Actions > Coletar DOU > Run workflow** e confirme a execução.
+7. Confira `docs/status-dodf.json`, `docs/status-dou.json` e os arquivos em `docs/feeds/`.
+8. No Portal RSR, abra **Gerenciar Fontes** e importe `feeds.opml` para cadastrar apenas o feed geral. Para três fontes separadas, use `feeds-tematicos.opml`.
 
 Não é necessário ativar GitHub Pages. `raw.githubusercontent.com` entrega o XML diretamente.
 
@@ -44,19 +47,24 @@ A opção recomendada é somente `todos.xml`, por exigir uma única leitura do s
 
 ## Agenda
 
-O workflow executa às 07h17, 11h17, 15h17 e 19h17 de Brasília. Os 17 minutos evitam a concentração de tarefas no minuto zero do GitHub Actions. A execução também pode ser disparada manualmente.
+Os workflows são independentes, mas compartilham um grupo de concorrência para nunca executar ou publicar simultaneamente:
+
+- **Coletar DODF:** 07h17, 11h17, 15h17 e 19h17 de Brasília.
+- **Coletar DOU:** 07h27, 11h27, 15h27 e 19h27 de Brasília.
+
+Ambos também podem ser disparados manualmente.
 
 ## Comportamento operacional
 
-- Reconsulta os últimos 3 dias, protegendo contra edições tardias e atrasos de indexação.
+- Reconsulta os últimos 5 dias, protegendo contra edições tardias, fins de semana e atrasos de indexação.
 - Retém itens por 730 dias.
-- Deduplica por fonte, URL, página, regra e trecho.
+- Mantém identidade específica por ato e uma chave de recolhimento para substituir itens legados sem duplicação.
 - Processa todas as versões PDF listadas na página diária do DODF.
+- Usa o SINJ-DF como fallback oficial quando o portal diário do DODF estiver indisponível.
 - Baixa do INLABS todos os ZIPs/XMLs do DOU listados para a data, incluindo edições adicionais disponibilizadas pelo portal.
-- Interrompe com erro claro se as credenciais do INLABS não estiverem configuradas, evitando um monitor aparentemente saudável que ignore o DOU.
-- Registra falhas parciais em `docs/status.json`.
-- Se uma fonte falhar, preserva e publica resultados obtidos da outra.
-- Se ambas falharem e nenhum documento for lido, o workflow termina com erro visível.
+- Usa a busca pública oficial e seu JSON estruturado como fallback do DOU, com contingência HTML paginada.
+- Os workflows de DODF e DOU são autônomos; falha de uma fonte não bloqueia a outra.
+- Se a `main` avançar durante a coleta, o workflow refaz somente sua fonte sobre o estado novo e tenta publicar novamente.
 
 ## Ajuste das regras
 
@@ -86,11 +94,12 @@ python src/main.py --verbose
 
 ## Diagnóstico
 
-O arquivo `docs/status.json` informa:
+Os arquivos `docs/status-dodf.json` e `docs/status-dou.json` informam:
 
 - início e fim da execução;
-- datas consultadas;
-- documentos examinados por fonte;
+- data de referência;
+- documentos examinados;
+- backend utilizado;
 - correspondências novas;
 - total armazenado;
 - falhas sanitizadas.
@@ -100,10 +109,10 @@ O log completo fica na execução do GitHub Actions. Uma alteração estrutural 
 ## Limitações conhecidas
 
 - Portais oficiais podem alterar HTML, parâmetros ou mecanismos antibot. Os seletores são tolerantes, mas não eternos.
-- O PDF do DODF é examinado por página. Uma página com vários atos pode gerar um título genérico, embora o trecho e o link apontem para a página correta.
-- O INLABS normalmente disponibiliza os arquivos depois da publicação oficial; a janela de 3 dias cobre atrasos e edições tardias.
-- O XML do INLABS é adequado ao processamento, mas não substitui a versão oficial certificada. O link de cada item abre a busca oficial do DOU pelo título e pela data.
+- O PDF do DODF é examinado por página; o coletor recorta o ato correspondente pelos termos encontrados, mas diagramações excepcionalmente irregulares podem exigir ajuste.
+- O INLABS normalmente disponibiliza os arquivos depois da publicação oficial; a janela de 5 dias cobre atrasos e edições tardias.
+- O XML do INLABS e a busca pública são adequados ao monitoramento, mas não substituem a versão oficial certificada.
 
 ## Base técnica do DOU
 
-O adaptador INLABS segue o fluxo público implementado pelo projeto governamental Ro-DOU: autenticação em `logar.php`, listagem diária em `index.php?p=AAAA-MM-DD` e download dos arquivos ZIP anunciados pelo portal. O código deste projeto é independente e reduzido ao necessário para gerar RSS.
+O adaptador INLABS segue o fluxo público implementado pelo projeto governamental Ro-DOU: autenticação em `logar.php`, listagem diária em `index.php?p=AAAA-MM-DD` e download dos arquivos ZIP anunciados pelo portal. O fallback consulta o buscador oficial, lê seu JSON estruturado e, em mudança de esquema, percorre os resultados HTML. O código deste projeto é independente e reduzido ao necessário para gerar RSS.
