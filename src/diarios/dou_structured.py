@@ -163,6 +163,7 @@ class StructuredDouCollector(DouCollector):
         """Coleta links de todas as páginas anunciadas sem depender do JSON."""
         queue = [first_response]
         seen_page_urls = {first_response.url}
+        followed_advertised_pagination = False
 
         while queue and len(seen_page_urls) <= 50:
             response = queue.pop(0)
@@ -172,12 +173,20 @@ class StructuredDouCollector(DouCollector):
                     continue
                 seen_page_urls.add(page_url)
                 try:
-                    queue.append(self.client.get(page_url))
+                    page_response = self.client.get(page_url)
                 except Exception as exc:
                     LOG.warning("DOU público: página HTML de contingência falhou: %s", exc)
+                    continue
+                followed_advertised_pagination = True
+                queue.append(page_response)
+
+        # Se o portal forneceu URLs navegáveis e elas responderam, a fila acima já
+        # percorreu as páginas. Evita duplicar até 49 requisições por termo.
+        if followed_advertised_pagination:
+            return
 
         # Alguns layouts anunciam a quantidade, mas não fornecem href navegável.
-        # Nesse caso, ainda tentamos cada página declarada com os parâmetros do portal.
+        # Nesse caso, tenta cada página declarada com os parâmetros do portal.
         for page_number in range(2, min(total_pages, 50) + 1):
             generic_params = dict(base_params)
             generic_params.update({"newPage": page_number, "currentPage": page_number - 1})
