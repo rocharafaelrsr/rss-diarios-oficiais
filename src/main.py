@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+import requests
 import yaml
 
 from diarios.dodf import DodfCollector
@@ -102,6 +103,8 @@ def main() -> int:
     parser.add_argument("--config", default="config/monitors.yml")
     parser.add_argument("--date", help="Data de referência no formato AAAA-MM-DD")
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--source", choices=("all", "dodf", "dou"), default="all")
+    parser.add_argument("--lookback", type=int, help="Sobrescreve a quantidade de dias consultados")
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -127,9 +130,10 @@ def main() -> int:
         "errors": [],
     }
     documents: list[Document] = []
-    days = days_to_collect(today, int(project.get("lookback_days", 3)))
+    lookback = args.lookback if args.lookback is not None else int(project.get("lookback_days", 3))
+    days = days_to_collect(today, lookback)
 
-    if config["sources"]["dodf"].get("enabled", True):
+    if args.source in ("all", "dodf") and config["sources"]["dodf"].get("enabled", True):
         collector = DodfCollector(client, config["sources"]["dodf"]["daily_url"])
         count_before = len(documents)
         for day in days:
@@ -138,10 +142,13 @@ def main() -> int:
             except Exception as exc:  # preserva a outra fonte
                 LOG.exception("Falha geral no DODF em %s", day)
                 status["errors"].append({"source": "dodf", "date": day.isoformat(), "error": str(exc)[:300]})
+                if isinstance(exc, requests.RequestException):
+                    LOG.warning("DODF: circuito aberto; demais datas serão retomadas na próxima execução")
+                    break
         status["sources"]["dodf"] = {"documents": len(documents) - count_before}
 
     dou_required_failure = False
-    if config["sources"]["dou"].get("enabled", True):
+    if args.source in ("all", "dou") and config["sources"]["dou"].get("enabled", True):
         dou_cfg = config["sources"]["dou"]
         collector = DouCollector(
             client,
@@ -161,6 +168,9 @@ def main() -> int:
             except Exception as exc:
                 LOG.exception("Falha geral no DOU em %s", day)
                 status["errors"].append({"source": "dou", "date": day.isoformat(), "error": str(exc)[:300]})
+                if isinstance(exc, requests.RequestException) or isinstance(exc, ConnectionError):
+                    LOG.warning("DOU: circuito aberto; demais datas serão retomadas na próxima execução")
+                    break
         status["sources"]["dou"] = {"documents": len(documents) - count_before}
 
     new_items = classify(documents, rules, now)
@@ -195,7 +205,8 @@ def main() -> int:
             "stored_items": len(all_items),
         }
     )
-    status_path = root / "docs/status.json"
+    status_name = "status.json" if args.source == "all" else f"status-{args.source}.json"
+    status_path = root / "docs" / status_name
     status_path.write_text(json.dumps(status, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     LOG.info("Concluído: %d documentos, %d correspondências novas, %d itens armazenados", len(documents), len(new_items), len(all_items))
 

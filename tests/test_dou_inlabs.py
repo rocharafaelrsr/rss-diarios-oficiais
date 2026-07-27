@@ -23,3 +23,41 @@ def test_parse_inlabs_xml():
     assert doc.section == "DO1"
     assert doc.page == 15
     assert "publishFrom=27-07-2026" in doc.url
+
+
+class LoginResponse:
+    def raise_for_status(self):
+        return None
+
+
+class LoginSession:
+    def __init__(self):
+        self.cookies = {}
+        self.posts = 0
+
+    def post(self, *_args, **_kwargs):
+        self.posts += 1
+        self.cookies["inlabs_session_cookie"] = "ok"
+        return LoginResponse()
+
+
+class LoginClient:
+    timeout = 30
+    request_timeout = (10, 30)
+
+    def __init__(self):
+        self.session = LoginSession()
+        self.gets = 0
+
+    def get(self, *_args, **_kwargs):
+        self.gets += 1
+        return LoginResponse()
+
+
+def test_login_is_reused_between_dates():
+    client = LoginClient()
+    collector = DouCollector(client, "https://inlabs.in.gov.br/", "x@y.z", "secret")
+    collector._login()
+    collector._login()
+    assert client.session.posts == 1
+    assert client.gets == 1

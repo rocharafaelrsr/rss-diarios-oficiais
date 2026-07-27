@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import logging
 from datetime import date, datetime, time
-from urllib.parse import parse_qs, unquote_plus, urljoin, urlparse
+from urllib.parse import parse_qs, unquote_plus, urljoin, urlparse, urlunparse
 from zoneinfo import ZoneInfo
 
 import fitz
@@ -15,12 +15,14 @@ from text_utils import clean_text
 
 LOG = logging.getLogger(__name__)
 BRT = ZoneInfo("America/Sao_Paulo")
+OFFICIAL_HOSTS = {"dodf.df.gov.br", "www.dodf.df.gov.br"}
 
 
 class DodfCollector:
     def __init__(self, client: HttpClient, daily_url: str) -> None:
         self.client = client
         self.daily_url = daily_url
+        self._primed_hosts: set[str] = set()
 
     @staticmethod
     def _timestamp_for(day: date) -> int:
@@ -34,25 +36,69 @@ class DodfCollector:
             return filename.removesuffix(".pdf").strip()
         return "DODF"
 
+    def _daily_candidates(self) -> list[str]:
+        parsed = urlparse(self.daily_url)
+        host = (parsed.hostname or "").casefold()
+        hosts = [host]
+        if host.startswith("www."):
+            hosts.insert(0, host.removeprefix("www."))
+        elif host:
+            hosts.append(f"www.{host}")
+        output: list[str] = []
+        for candidate_host in hosts:
+            netloc = candidate_host
+            if parsed.port:
+                netloc = f"{candidate_host}:{parsed.port}"
+            candidate = urlunparse(parsed._replace(netloc=netloc))
+            if candidate not in output:
+                output.append(candidate)
+        return output
+
+    def _prime(self, daily_url: str) -> None:
+        parsed = urlparse(daily_url)
+        host = (parsed.hostname or "").casefold()
+        if not host or host in self._primed_hosts:
+            return
+        self._primed_hosts.add(host)
+        root = urlunparse((parsed.scheme, parsed.netloc, "/", "", "", ""))
+        try:
+            # Alguns WAFs só liberam a rota interna depois de criarem cookies na
+            # página inicial. A falha do aquecimento não impede a tentativa direta.
+            self.client.get(root)
+        except Exception as exc:
+            LOG.info("DODF: aquecimento de sessão falhou em %s: %s", host, exc)
+
     def list_pdf_urls(self, day: date) -> list[str]:
-        response = self.client.get(self.daily_url, params={"data": self._timestamp_for(day)})
-        soup = BeautifulSoup(response.text, "html.parser")
-        urls: list[str] = []
-        for anchor in soup.select("a[href]"):
-            href = anchor.get("href", "")
-            if "visualizar-pdf" not in href.lower():
+        last_error: Exception | None = None
+        for daily_url in self._daily_candidates():
+            self._prime(daily_url)
+            try:
+                response = self.client.get(daily_url, params={"data": self._timestamp_for(day)})
+            except Exception as exc:
+                last_error = exc
+                LOG.warning("DODF %s: endpoint %s indisponível: %s", day.isoformat(), daily_url, exc)
                 continue
-            absolute = urljoin(response.url, href)
-            parsed = urlparse(absolute)
-            response_host = (urlparse(response.url).hostname or "").casefold()
-            if parsed.scheme != "https" or (parsed.hostname or "").casefold() != response_host:
-                LOG.warning("DODF: link de PDF externo/inseguro ignorado: %s", absolute)
-                continue
-            if absolute not in urls:
-                urls.append(absolute)
-        if not urls:
-            LOG.warning("DODF %s: página diária sem links de PDF", day.isoformat())
-        return urls
+
+            soup = BeautifulSoup(response.text, "html.parser")
+            urls: list[str] = []
+            for anchor in soup.select("a[href]"):
+                href = anchor.get("href", "")
+                if "visualizar-pdf" not in href.lower():
+                    continue
+                absolute = urljoin(response.url, href)
+                parsed = urlparse(absolute)
+                if parsed.scheme != "https" or (parsed.hostname or "").casefold() not in OFFICIAL_HOSTS:
+                    LOG.warning("DODF: link de PDF externo/inseguro ignorado: %s", absolute)
+                    continue
+                if absolute not in urls:
+                    urls.append(absolute)
+            if not urls:
+                LOG.warning("DODF %s: página diária sem links de PDF", day.isoformat())
+            return urls
+
+        if last_error is not None:
+            raise last_error
+        return []
 
     def collect(self, day: date) -> list[Document]:
         documents: list[Document] = []
