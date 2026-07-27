@@ -4,10 +4,16 @@ import re
 from datetime import datetime
 
 from models import Document, FeedItem
-from text_utils import clean_text, normalize
+from text_utils import clean_text, normalize, sha256_text
 
 MAX_TITLE = 112
 MAX_SUMMARY = 300
+MAX_EVIDENCE = 2800
+ACT_MARKER_RE = re.compile(
+    r"(?<!\w)(?:LEI|PORTARIA|EDITAL|DECRETO|RESOLUÇÃO|INSTRUÇÃO\s+NORMATIVA|"
+    r"ATO|DESPACHO|ORDEM\s+DE\s+SERVIÇO|AVISO)\s+(?:N[º°O]?\s*)?\d",
+    flags=re.I | re.U,
+)
 
 
 def _compact(text: str, limit: int) -> str:
@@ -31,7 +37,7 @@ def _events(norm: str, terms: tuple[str, ...]) -> list[int]:
     positions: list[int] = []
     for term in terms:
         needle = normalize(term).strip()
-        if not needle:
+        if not needle or "\\" in needle:
             continue
         start = 0
         while True:
@@ -66,9 +72,99 @@ def _groups_near(norm: str, groups: tuple[tuple[str, ...], ...], max_span: int) 
     return False
 
 
+def _minimum_term_window(norm: str, terms: list[str]) -> tuple[int, int] | None:
+    groups: list[list[int]] = []
+    for term in dict.fromkeys(terms):
+        positions = _events(norm, (term,))
+        if positions:
+            groups.append(positions)
+    if not groups:
+        return None
+    events = sorted((pos, group_id) for group_id, positions in enumerate(groups) for pos in positions)
+    counts: dict[int, int] = {}
+    covered = 0
+    left = 0
+    best: tuple[int, int] | None = None
+    for right_pos, right_group in events:
+        counts[right_group] = counts.get(right_group, 0) + 1
+        if counts[right_group] == 1:
+            covered += 1
+        while covered == len(groups):
+            left_pos, left_group = events[left]
+            if best is None or right_pos - left_pos < best[1] - best[0]:
+                best = (left_pos, right_pos)
+            counts[left_group] -= 1
+            if counts[left_group] == 0:
+                covered -= 1
+            left += 1
+    return best
+
+
+def extract_matched_act(text: str, matched_terms: list[str]) -> str:
+    """Recorta o ato que contém o conjunto de termos, evitando outros atos da página."""
+    clean = clean_text(text)
+    if not clean:
+        return ""
+    norm = normalize(clean).strip()
+    window = _minimum_term_window(norm, matched_terms)
+    if window is None:
+        return _compact(clean, MAX_EVIDENCE)
+    center = max(0, min(len(clean), (window[0] + window[1]) // 2))
+
+    markers = list(ACT_MARKER_RE.finditer(clean))
+    start = 0
+    end = len(clean)
+    for index, marker in enumerate(markers):
+        if marker.start() <= center:
+            start = marker.start()
+            end = markers[index + 1].start() if index + 1 < len(markers) else len(clean)
+        elif marker.start() > center:
+            break
+    act = clean[start:end].strip()
+    if 80 <= len(act) <= MAX_EVIDENCE:
+        return act
+
+    radius = MAX_EVIDENCE // 2
+    start = max(0, center - radius)
+    end = min(len(clean), center + radius)
+    return clean[start:end].strip()
+
+
 def _title_starts(title: str, words: tuple[str, ...]) -> bool:
     value = normalize(title).strip()
     return any(value.startswith(normalize(word).strip()) for word in words)
+
+
+def _ldo_marker(norm: str) -> bool:
+    return any(
+        _has(norm, phrase)
+        for phrase in (
+            "lei de diretrizes orçamentárias",
+            "diretrizes orçamentárias",
+            "diretrizes para a elaboração e a execução da lei orçamentária",
+            "diretrizes para elaboração e execução da lei orçamentária",
+        )
+    ) or _word(norm, "ldo")
+
+
+def _authorization_matches(norm: str) -> list[re.Match[str]]:
+    pattern = re.compile(
+        r"(?:fica\s+autorizad[ao]|autoriza(?:-se)?|autorizar)\b"
+        r"[^.;]{0,220}?\b(?:realizar|realizacao|abertura)\b"
+        r"[^.;]{0,120}?\b(?:concurso\s+publico|certame)\b"
+    )
+    return list(pattern.finditer(norm))
+
+
+def _is_negated_authorization(norm: str, match: re.Match[str]) -> bool:
+    context = norm[max(0, match.start() - 100) : match.end()]
+    return bool(
+        re.search(
+            r"\b(?:nao|jamais|vedad[oa]|deixa\s+de|sem)\b[^.;]{0,60}"
+            r"\b(?:autoriza|autorizar|autorizad[ao])\b",
+            context,
+        )
+    )
 
 
 def strictly_relevant(category: str, source: str, title: str, text: str, next_year: int) -> bool:
@@ -99,26 +195,20 @@ def strictly_relevant(category: str, source: str, title: str, text: str, next_ye
         )
         return marker and context
 
-    ldo_marker = _has(norm, "lei de diretrizes orçamentárias") or _has(norm, "diretrizes orçamentárias") or _word(norm, "ldo")
-
     if category == "ldo":
         year_ok = _word(norm, str(next_year))
-        legal_action = any(
+        enactment = _title_starts(title, ("lei",)) or any(
             _has(norm, term)
             for term in (
-                "dispõe sobre as diretrizes orçamentárias", "sanciona", "promulga",
-                "publica a lei", "aprova a lei",
+                "dispõe sobre as diretrizes",
+                "estabelece as diretrizes orçamentárias",
+                "estabelece as diretrizes para a elaboração",
+                "eu sanciono",
+                "sanciono",
+                "promulga",
             )
         )
-        return ldo_marker and year_ok and legal_action and _groups_near(
-            norm,
-            (
-                ("lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo "),
-                (str(next_year),),
-                ("lei", "sanciona", "promulga", "publica", "aprova"),
-            ),
-            800,
-        )
+        return _ldo_marker(norm) and year_ok and enactment
 
     if category == "ldo_concursos":
         if _title_starts(title, ("edital", "resultado", "portaria", "retificação", "aviso")):
@@ -132,10 +222,13 @@ def strictly_relevant(category: str, source: str, title: str, text: str, next_ye
             "retifica", "emenda", "veto",
         )
         legal = ("lei", "projeto de lei", "emenda", "veto", "mensagem")
-        return ldo_marker and _groups_near(
+        return _ldo_marker(norm) and _groups_near(
             norm,
             (
-                ("lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo "),
+                (
+                    "lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo ",
+                    "diretrizes para a elaboração e a execução da lei orçamentária",
+                ),
                 personnel, change, legal,
             ),
             900,
@@ -144,11 +237,8 @@ def strictly_relevant(category: str, source: str, title: str, text: str, next_ye
     if category == "autorizacao_concurso":
         if _title_starts(title, ("edital", "resultado", "retificação", "convocação", "homologação")):
             return False
-        patterns = (
-            r"(?:fica\s+autorizad[ao]|autoriza(?:-se)?|autorizar)\s+(?:[^.;]{0,100}\s+)?(?:a\s+)?(?:realizacao|abertura)\s+(?:de|do)\s+(?:novo\s+)?(?:concurso\s+publico|certame)",
-            r"(?:fica\s+autorizad[ao]|autoriza(?:-se)?|autorizar)\s+[^.;]{0,100}\s+a\s+realizar\s+(?:novo\s+)?concurso\s+publico",
-        )
-        return any(re.search(pattern, norm) for pattern in patterns)
+        matches = _authorization_matches(norm)
+        return any(not _is_negated_authorization(norm, match) for match in matches)
 
     return False
 
@@ -178,14 +268,21 @@ def _operative_sentence(text: str, needles: tuple[str, ...]) -> str:
     return sentences[0] if sentences else clean_text(text)
 
 
-def _ldo_year(text: str, fallback: int | None = None) -> str:
+def _ldo_year(text: str, preferred: int | None = None) -> str:
     norm = normalize(text)
-    years = re.findall(r"\b20\d{2}\b", norm)
-    current = datetime.now().year
-    plausible = [year for year in years if current - 1 <= int(year) <= current + 3]
-    if plausible:
-        return plausible[0]
-    return str(fallback) if fallback else ""
+    if preferred is not None and _word(norm, str(preferred)):
+        return str(preferred)
+    patterns = (
+        r"(?:para\s+o\s+exercicio|exercicio|ano\s+financeiro)\s+(?:de\s+)?(20\d{2})",
+        r"diretrizes[^.;]{0,160}?\bpara\s+(?:o\s+exercicio\s+de\s+)?(20\d{2})",
+        r"lei\s+orcamentaria[^.;]{0,80}?\b(?:de|para)\s+(20\d{2})",
+        r"\bldo\s+(?:de|para)\s+(20\d{2})",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, norm)
+        if match:
+            return match.group(1)
+    return str(preferred) if preferred is not None else ""
 
 
 def _authorization_target(text: str, organization: str = "") -> str:
@@ -199,7 +296,12 @@ def _authorization_target(text: str, organization: str = "") -> str:
         match = re.search(pattern, value, flags=re.I | re.U)
         if match:
             target = clean_text(match.group(1))
-            target = re.split(r",\s+(?:observad|conforme|nos termos|com vistas|mediante)\b", target, maxsplit=1, flags=re.I)[0]
+            target = re.split(
+                r",\s+(?:observad|conforme|nos termos|com vistas|mediante)\b",
+                target,
+                maxsplit=1,
+                flags=re.I,
+            )[0]
             return _compact(target, 78)
     org = clean_text(organization)
     if org:
@@ -233,7 +335,10 @@ def build_presentation(document: Document, category: str, next_year: int) -> tup
             action = "Publica edital do concurso ATUB"
         else:
             action = "Publica ato relativo ao concurso ATUB"
-        sentence = _operative_sentence(raw or combined, ("curso de formação", "convoca", "nomea", "prorroga", "homologa", "resultado", "retifica", "edital"))
+        sentence = _operative_sentence(
+            raw or combined,
+            ("curso de formação", "convoca", "nomea", "prorroga", "homologa", "resultado", "retifica", "edital"),
+        )
         summary = sentence if sentence else action + "."
     elif category == "ldo":
         year = _ldo_year(combined, next_year)
@@ -257,9 +362,12 @@ def build_presentation(document: Document, category: str, next_year: int) -> tup
             action = f"Altera a LDO{suffix} quanto a concursos e provimentos"
         summary = f"A publicação modifica a LDO{suffix} em dispositivos relativos a concursos, provimentos, cargos ou admissões de pessoal."
     elif category == "autorizacao_concurso":
-        target = _authorization_target(combined, getattr(document, "organization", ""))
+        target = _authorization_target(combined, document.organization)
         action = f"Autoriza novo concurso para {target}" if target else "Autoriza a realização de novo concurso público"
-        sentence = _operative_sentence(raw or combined, ("autoriza", "autorizada", "autorizar", "realização de concurso", "realizar concurso"))
+        sentence = _operative_sentence(
+            raw or combined,
+            ("autoriza", "autorizada", "autorizar", "realização de concurso", "realizar concurso"),
+        )
         summary = sentence if sentence else action + "."
     else:
         action = clean_text(document.title)
@@ -272,24 +380,71 @@ def build_presentation(document: Document, category: str, next_year: int) -> tup
     return title, summary
 
 
+def stable_identity(
+    *,
+    source: str,
+    category: str,
+    published_at: str,
+    edition: str,
+    section: str,
+    page: int | None,
+    evidence: str,
+) -> str:
+    return sha256_text(
+        source,
+        category,
+        published_at[:10],
+        edition,
+        section,
+        page or "",
+        normalize(evidence).strip(),
+    )
+
+
 def sanitize_stored_items(items: list[FeedItem], next_year: int) -> tuple[list[FeedItem], int]:
     output: list[FeedItem] = []
     removed = 0
     for item in items:
-        if not strictly_relevant(item.category, item.source, item.title, item.excerpt, next_year):
+        evidence = clean_text(item.evidence)
+        semantic = item.title.startswith("[DODF]") or item.title.startswith("[DOU]")
+
+        if not evidence and semantic:
+            # Versões 1.1 já perderam o texto-fonte. Preserva-se o item; quando o
+            # ato for recolhido, merge_items o substituirá pela versão com evidência.
+            item.identity = item.identity or sha256_text(
+                item.source, item.category, item.link, item.page or "", item.published_at[:10]
+            )
+            item.guid = item.identity
+            output.append(item)
+            continue
+
+        evidence = evidence or clean_text(item.excerpt)
+        if not strictly_relevant(item.category, item.source, item.title, evidence, next_year):
             removed += 1
             continue
+
         document = Document(
             source=item.source,
             source_label=item.source_label,
             title=item.title,
             url=item.link,
             published_at=datetime.fromisoformat(item.published_at),
-            text=item.excerpt,
+            text=evidence,
             edition=item.edition,
             section=item.section,
             page=item.page,
         )
         item.title, item.excerpt = build_presentation(document, item.category, next_year)
+        item.evidence = evidence
+        item.identity = stable_identity(
+            source=item.source,
+            category=item.category,
+            published_at=item.published_at,
+            edition=item.edition,
+            section=item.section,
+            page=item.page,
+            evidence=evidence,
+        )
+        item.guid = item.identity
         output.append(item)
     return output, removed

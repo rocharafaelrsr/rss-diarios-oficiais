@@ -14,20 +14,15 @@ sources:
     enabled: true
     daily_url: "https://dodf.df.gov.br/dodf/jornal/diario"
     sinj_search_url: "https://www.sinj.df.gov.br/sinj/Pesquisas.aspx"
-    # O portal do DODF permanece como fonte primária. Quando estiver indisponível,
-    # o coletor consulta a coleção oficial de diários do SINJ-DF.
   dou:
     enabled: true
     required: true
     inlabs_base_url: "https://inlabs.in.gov.br/"
     public_search_url: "https://www.in.gov.br/consulta/-/buscar/dou"
-    # Consultas avançadas compatíveis com o buscador oficial e com o Ro-DOU.
-    # Não pesquisar "concurso público" ou "LDO" isoladamente: isso traz editais,
-    # nomeações e atos comuns que não pertencem ao escopo do monitoramento.
     public_search_terms:
-      - '"lei de diretrizes orçamentárias" AND ${NEXT_YEAR}'
-      - '("lei de diretrizes orçamentárias" OR LDO) AND ("concurso público" OR provimento OR nomeação OR "admissão de pessoal") AND (altera OR alteração OR emenda OR veto OR retifica)'
-      - '("autoriza a realização" OR "fica autorizada a realização" OR "autorizar a realização" OR "autoriza a abertura") AND "concurso público"'
+      - '("lei de diretrizes orçamentárias" OR "diretrizes para a elaboração e a execução da lei orçamentária") AND ${NEXT_YEAR}'
+      - '(("lei de diretrizes orçamentárias" OR LDO) AND ("concurso público" OR provimento OR nomeação OR "admissão de pessoal") AND (altera OR alteração OR emenda OR veto OR retifica))'
+      - '((autoriza OR autorizado OR autorizada OR autorizar) AND "concurso público")'
 
 feeds:
   todos:
@@ -88,10 +83,10 @@ rules:
     label: "Publicação da LDO"
     sources: [dodf, dou]
     priority: 10
-    max_span_chars: 800
+    max_span_chars: 1000
     all_groups:
-      - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo "]
-      - ["lei", "sanciona", "promulga", "publica a lei", "aprova a lei", "dispõe sobre"]
+      - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo ", "diretrizes para a elaboração e a execução da lei orçamentária", "diretrizes para elaboração e execução da lei orçamentária"]
+      - ["lei", "sanciona", "sanciono", "eu sanciono", "promulga", "publica a lei", "aprova a lei", "dispõe sobre as diretrizes", "estabelece as diretrizes"]
       - ["${NEXT_YEAR}", "exercício de ${NEXT_YEAR}", "para o exercício de ${NEXT_YEAR}"]
     exclude_phrases:
       - "jurisprudência"
@@ -103,7 +98,7 @@ rules:
     priority: 10
     max_span_chars: 900
     all_groups:
-      - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo "]
+      - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo ", "diretrizes para a elaboração e a execução da lei orçamentária"]
       - ["concurso público", "provimento", "nomeação", "admissão de pessoal", "criação de cargos", "cargos vagos", "anexo de pessoal", "despesa de pessoal"]
       - ["altera", "alteração", "inclui", "acrescenta", "suprime", "substitui", "retifica", "emenda", "veto"]
       - ["lei", "projeto de lei", "emenda", "veto", "mensagem"]
@@ -116,9 +111,9 @@ rules:
     label: "Autorização de novo concurso"
     sources: [dodf, dou]
     priority: 10
-    max_span_chars: 260
+    max_span_chars: 280
     all_groups:
-      - ["autoriza a realização", "fica autorizada a realização", "fica autorizado a realização", "autorizar a realização", "autoriza a abertura", "autoriza a realizar"]
+      - ["autoriza", "autorizado", "autorizada", "autorizar", "fica autorizado", "fica autorizada"]
       - ["concurso público", "novo concurso público", "realizar concurso público"]
     exclude_phrases:
       - "curso preparatório"

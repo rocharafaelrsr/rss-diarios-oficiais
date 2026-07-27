@@ -37,10 +37,19 @@ class FeedItem:
     page: int | None
     excerpt: str
     matched_terms: list[str]
+    evidence: str = ""
+    identity: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "FeedItem":
-        return cls(**value)
+        payload = dict(value)
+        payload.setdefault("evidence", "")
+        payload.setdefault("identity", "")
+        # O formato antigo usava barras verticais e guardava o texto-fonte no
+        # próprio excerpt. Recupera essa evidência para a migração determinística.
+        if not payload["evidence"] and " | " in str(payload.get("title", "")):
+            payload["evidence"] = str(payload.get("excerpt", ""))
+        return cls(**payload)

@@ -18,11 +18,16 @@ from diarios.dou import InlabsAuthenticationError
 from diarios.dou_structured import StructuredDouCollector
 from http_client import HttpClient
 from models import Document, FeedItem
-from presentation import build_presentation, sanitize_stored_items, strictly_relevant
+from presentation import (
+    build_presentation,
+    extract_matched_act,
+    sanitize_stored_items,
+    stable_identity,
+    strictly_relevant,
+)
 from rss_writer import write_rss
 from rules import Rule
 from state import load_items, merge_items, save_items
-from text_utils import sha256_text
 
 BRT = ZoneInfo("America/Sao_Paulo")
 LOG = logging.getLogger("rss_diarios")
@@ -60,20 +65,40 @@ def classify(
             matched = rule.match(document.source, combined)
             if not matched:
                 continue
-            if not strictly_relevant(rule.id, document.source, document.title, document.text, next_year):
+
+            evidence = extract_matched_act(combined, matched)
+            if not strictly_relevant(rule.id, document.source, document.title, evidence, next_year):
                 LOG.debug("Descartado pelo escopo estrito: %s | %s", rule.id, document.title)
                 continue
-            title, summary = build_presentation(document, rule.id, next_year)
-            guid = sha256_text(
-                document.source,
-                document.url,
-                document.page or "",
-                rule.id,
-                summary[:240],
+
+            localized = Document(
+                source=document.source,
+                source_label=document.source_label,
+                title=document.title,
+                url=document.url,
+                published_at=document.published_at,
+                text=evidence,
+                edition=document.edition,
+                section=document.section,
+                page=document.page,
+                publication_type=document.publication_type,
+                organization=document.organization,
+            )
+            title, summary = build_presentation(localized, rule.id, next_year)
+            published_at = document.published_at.isoformat()
+            identity = stable_identity(
+                source=document.source,
+                category=rule.id,
+                published_at=published_at,
+                edition=document.edition,
+                section=document.section,
+                page=document.page,
+                evidence=evidence,
             )
             output.append(
                 FeedItem(
-                    guid=guid,
+                    guid=identity,
+                    identity=identity,
                     category=rule.id,
                     category_label=rule.label,
                     priority=rule.priority,
@@ -81,13 +106,14 @@ def classify(
                     source_label=document.source_label,
                     title=title,
                     link=document.url,
-                    published_at=document.published_at.isoformat(),
+                    published_at=published_at,
                     collected_at=collected_at.isoformat(),
                     edition=document.edition,
                     section=document.section,
                     page=document.page,
                     excerpt=summary,
                     matched_terms=matched,
+                    evidence=evidence,
                 )
             )
     return output
