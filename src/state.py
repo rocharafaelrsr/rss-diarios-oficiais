@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from models import FeedItem
+from recollection import backend_recollection_key, legacy_semantic_key
 
 
 def load_items(path: Path) -> list[FeedItem]:
@@ -18,6 +19,34 @@ def _key(item: FeedItem) -> str:
     return item.identity or item.guid
 
 
+def _refresh_recollection_key(item: FeedItem) -> str:
+    key = backend_recollection_key(
+        source=item.source,
+        category=item.category,
+        published_at=item.published_at,
+        edition=item.edition,
+        section=item.section,
+        page=item.page,
+        title=item.title,
+        evidence=item.evidence,
+    )
+    # Migra automaticamente as chaves antigas que eram baseadas na URL.
+    item.recollection_key = key
+    return key
+
+
+def _legacy_key(item: FeedItem) -> str:
+    return legacy_semantic_key(
+        source=item.source,
+        category=item.category,
+        published_at=item.published_at,
+        edition=item.edition,
+        section=item.section,
+        page=item.page,
+        title=item.title,
+    )
+
+
 def merge_items(
     old: list[FeedItem],
     new: list[FeedItem],
@@ -26,19 +55,20 @@ def merge_items(
     retention_days: int,
 ) -> list[FeedItem]:
     cutoff = now - timedelta(days=retention_days)
-    new_recollection_keys = {item.recollection_key for item in new if item.recollection_key}
+    new_recollection_keys = {_refresh_recollection_key(item) for item in new}
+    new_legacy_keys = {_legacy_key(item) for item in new}
 
-    # Uma nova coleta do mesmo link/data/página/categoria substitui integralmente
-    # as versões anteriores, inclusive as que tinham evidência. Isso permite
-    # corrigir recortes e resumos sem manter o card obsoleto por 730 dias.
-    old_kept = [
-        item
-        for item in old
-        if not (
-            item.recollection_key
-            and item.recollection_key in new_recollection_keys
-        )
-    ]
+    # Uma nova coleta do mesmo ato substitui integralmente versões anteriores,
+    # ainda que INLABS e busca pública tenham fornecido URLs ou textos diferentes.
+    # O alias semântico é usado somente para itens antigos sem evidência original.
+    old_kept: list[FeedItem] = []
+    for item in old:
+        current_key = _refresh_recollection_key(item)
+        replaced = current_key in new_recollection_keys
+        if not item.evidence:
+            replaced = replaced or _legacy_key(item) in new_legacy_keys
+        if not replaced:
+            old_kept.append(item)
 
     merged = {_key(item): item for item in old_kept}
     for item in new:
