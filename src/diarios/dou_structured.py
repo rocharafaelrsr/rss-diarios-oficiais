@@ -77,7 +77,9 @@ class StructuredDouCollector(DouCollector):
         for candidate in candidates:
             if "newpage" not in candidate.casefold() and "currentpage" not in candidate.casefold():
                 continue
-            absolute = urljoin(base_url, unescape(candidate))
+            # BeautifulSoup já decodifica entidades HTML nos atributos. Aplicar
+            # html.unescape novamente corromperia `&currentPage` como `&curren`.
+            absolute = urljoin(base_url, candidate)
             parsed = urlparse(absolute)
             if parsed.scheme != "https" or (parsed.hostname or "").casefold() not in IN_HOSTS:
                 continue
