@@ -33,6 +33,7 @@ REFERENCE_NOISE = {
     "realiza", "realizacao", "realizar", "abertura", "cargo", "cargos", "provimento",
     "nomeacao", "admissao", "pessoal", "novo", "nova", "publica", "publicacao",
     "instituto", "ministerio", "secretaria", "departamento", "agencia", "orgao", "entidade",
+    "dou", "dodf", "diario", "oficial", "uniao", "distrito", "federal",
 }
 
 
@@ -123,7 +124,8 @@ def _act_reference(title: str, evidence: str) -> str:
 
 def _discriminating_tokens(title: str, evidence: str) -> frozenset[str]:
     """Extrai nomes/objetos que diferenciam atos com a mesma numeração."""
-    normalized = normalize(f"{title} {evidence}").strip()
+    semantic_title = _canonical_semantic_title(title)
+    normalized = normalize(f"{semantic_title} {evidence}").strip()
     normalized = ACT_REFERENCE_RE.sub(" ", normalized)
     tokens = {
         token
