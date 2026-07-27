@@ -28,15 +28,14 @@ def merge_items(
     cutoff = now - timedelta(days=retention_days)
     new_recollection_keys = {item.recollection_key for item in new if item.recollection_key}
 
-    # Itens sem evidência vieram da versão semântica 1.1 e não conseguem gerar a
-    # identidade específica do ato. Quando o mesmo link/página é recolhido, a
-    # versão completa substitui o legado por meio da chave de recolhimento.
+    # Uma nova coleta do mesmo link/data/página/categoria substitui integralmente
+    # as versões anteriores, inclusive as que tinham evidência. Isso permite
+    # corrigir recortes e resumos sem manter o card obsoleto por 730 dias.
     old_kept = [
         item
         for item in old
         if not (
-            not item.evidence
-            and item.recollection_key
+            item.recollection_key
             and item.recollection_key in new_recollection_keys
         )
     ]
