@@ -1,0 +1,124 @@
+project:
+  title: "Diários Oficiais — ATUB, LDO e Concursos"
+  description: "Publicações oficiais filtradas no DODF e no DOU."
+  language: "pt-BR"
+  base_url: "https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs"
+  max_items_per_feed: 300
+  retention_days: 730
+  lookback_days: 3
+  request_timeout_seconds: 35
+  user_agent: "RSS-Diarios-Oficiais/1.0 (+https://github.com/rocharafaelrsr/rss-diarios-oficiais)"
+
+sources:
+  dodf:
+    enabled: true
+    daily_url: "https://www.dodf.df.gov.br/dodf/jornal/diario"
+    # O coletor consulta a página diária oficial e extrai todos os PDFs publicados,
+    # inclusive edições extras, suplementos e especiais quando listados nela.
+  dou:
+    enabled: true
+    required: true
+    inlabs_base_url: "https://inlabs.in.gov.br/"
+    # Credenciais ficam apenas nos GitHub Actions Secrets:
+    # INLABS_EMAIL e INLABS_PASSWORD. O INLABS fornece os atos em XML próprio
+    # para processamento automatizado e também lista edições extras.
+
+feeds:
+  todos:
+    title: "Diários Oficiais — Todos os alertas"
+    description: "ATUB, LDO e autorizações de concursos no DODF e no DOU."
+    categories: [atub, ldo, ldo_concursos, autorizacao_concurso]
+  atub:
+    title: "DODF — Concurso ATUB"
+    description: "Atos relativos à carreira Auditoria de Atividades Urbanas e seus concursos."
+    categories: [atub]
+  ldo:
+    title: "DODF e DOU — LDO e concursos"
+    description: "Publicação de LDO e alterações com efeito sobre concursos, provimentos e pessoal."
+    categories: [ldo, ldo_concursos]
+  autorizacoes-concursos:
+    title: "DODF e DOU — Autorizações de concursos"
+    description: "Atos que autorizem ou alterem a autorização de novos concursos públicos."
+    categories: [autorizacao_concurso]
+
+rules:
+  - id: atub
+    label: "Concurso ATUB"
+    sources: [dodf]
+    priority: 10
+    max_span_chars: 2200
+    any_phrases:
+      - "auditor fiscal de atividades urbanas"
+      - "auditoria de atividades urbanas"
+      - "auditor de atividades urbanas"
+      - "carreira auditoria de atividades urbanas"
+      - "atividades urbanas"
+      - "edital nº 01/2022"
+      - "edital n° 01/2022"
+      - "edital 01/2022"
+      - "atub"
+    context_any:
+      - "concurso"
+      - "curso de formação"
+      - "convoca"
+      - "nomea"
+      - "homologa"
+      - "prorroga"
+      - "resultado"
+      - "retifica"
+      - "reposicion"
+      - "desist"
+      - "aprovad"
+      - "candidato"
+      - "classifica"
+      - "cadastro de reserva"
+      - "validade do concurso"
+      - "edital"
+      - "inscrição"
+      - "banca examinadora"
+      - "processo seletivo"
+    # Frases inequívocas dispensam o segundo grupo de contexto.
+    unconditional_phrases:
+      - "edital nº 01/2022"
+      - "edital n° 01/2022"
+
+  - id: ldo
+    label: "Publicação da LDO"
+    sources: [dodf, dou]
+    priority: 9
+    max_span_chars: 2400
+    all_groups:
+      - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias"]
+      - ["lei", "sanção", "sanciona", "publica", "promulga", "veto", "projeto de lei"]
+      - ["${NEXT_YEAR}", "exercício de ${NEXT_YEAR}", "para o exercício de ${NEXT_YEAR}"]
+    any_regex:
+      - "\\bLDO\\b"
+    exclude_phrases:
+      - "jurisprudência"
+      - "questão de prova"
+
+  - id: ldo_concursos
+    label: "Alteração da LDO sobre concursos"
+    sources: [dodf, dou]
+    priority: 10
+    max_span_chars: 3600
+    all_groups:
+      - ["lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo "]
+      - ["concurso público", "provimento", "nomeação", "admissão de pessoal", "criação de cargos", "cargos vagos", "anexo de pessoal", "despesa de pessoal"]
+      - ["altera", "alteração", "inclui", "acrescenta", "suprime", "substitui", "retifica", "emenda", "anexo", "veto", "sanção"]
+
+  - id: autorizacao_concurso
+    label: "Autorização de concurso"
+    sources: [dodf, dou]
+    priority: 9
+    max_span_chars: 2000
+    all_groups:
+      - ["concurso público", "certame"]
+      - ["autoriza", "autorização", "fica autorizada", "fica autorizado", "autorizar"]
+    exclude_phrases:
+      - "curso preparatório"
+      - "concurso de remoção"
+      - "concurso cultural"
+      - "licitação"
+      - "jurisprudência"
+      - "decisão judicial"
