@@ -14,6 +14,10 @@ def load_items(path: Path) -> list[FeedItem]:
     return [FeedItem.from_dict(item) for item in data if isinstance(item, dict)]
 
 
+def _key(item: FeedItem) -> str:
+    return item.identity or item.guid
+
+
 def merge_items(
     old: list[FeedItem],
     new: list[FeedItem],
@@ -22,9 +26,9 @@ def merge_items(
     retention_days: int,
 ) -> list[FeedItem]:
     cutoff = now - timedelta(days=retention_days)
-    merged = {item.guid: item for item in old}
+    merged = {_key(item): item for item in old}
     for item in new:
-        merged[item.guid] = item
+        merged[_key(item)] = item
     kept = [item for item in merged.values() if datetime.fromisoformat(item.published_at) >= cutoff]
     kept.sort(key=lambda item: (item.published_at, item.priority), reverse=True)
     return kept
