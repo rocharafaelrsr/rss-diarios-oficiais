@@ -51,7 +51,7 @@ def _groups_near(norm: str, groups: tuple[tuple[str, ...], ...], max_span: int) 
     counts: dict[int, int] = {}
     covered = 0
     left = 0
-    for right, (right_pos, right_group) in enumerate(events):
+    for right_pos, right_group in events:
         counts[right_group] = counts.get(right_group, 0) + 1
         if counts[right_group] == 1:
             covered += 1
@@ -66,14 +66,12 @@ def _groups_near(norm: str, groups: tuple[tuple[str, ...], ...], max_span: int) 
     return False
 
 
-def _title_kind(title: str) -> str:
+def _title_starts(title: str, words: tuple[str, ...]) -> bool:
     value = normalize(title).strip()
-    match = re.match(r"([a-z]+(?:\s+[a-z]+){0,2})", value)
-    return match.group(1) if match else value
+    return any(value.startswith(normalize(word).strip()) for word in words)
 
 
 def strictly_relevant(category: str, source: str, title: str, text: str, next_year: int) -> bool:
-    """Aplica o escopo material solicitado, independentemente de coincidências genéricas."""
     combined = clean_text(f"{title}\n{text}")
     norm = normalize(combined)
 
@@ -94,18 +92,9 @@ def strictly_relevant(category: str, source: str, title: str, text: str, next_ye
         context = any(
             _has(norm, term)
             for term in (
-                "concurso",
-                "curso de formação",
-                "candidato",
-                "cadastro de reserva",
-                "edital",
-                "convoca",
-                "nomea",
-                "homologa",
-                "resultado",
-                "prorroga",
-                "retifica",
-                "inscrição",
+                "concurso", "curso de formação", "candidato", "cadastro de reserva",
+                "edital", "convoca", "nomea", "homologa", "resultado", "prorroga",
+                "retifica", "inscrição",
             )
         )
         return marker and context
@@ -117,11 +106,8 @@ def strictly_relevant(category: str, source: str, title: str, text: str, next_ye
         legal_action = any(
             _has(norm, term)
             for term in (
-                "dispõe sobre as diretrizes orçamentárias",
-                "sanciona",
-                "promulga",
-                "publica a lei",
-                "aprova a lei",
+                "dispõe sobre as diretrizes orçamentárias", "sanciona", "promulga",
+                "publica a lei", "aprova a lei",
             )
         )
         return ldo_marker and year_ok and legal_action and _groups_near(
@@ -135,59 +121,28 @@ def strictly_relevant(category: str, source: str, title: str, text: str, next_ye
         )
 
     if category == "ldo_concursos":
-        if _title_kind(title) in {
-            "edital",
-            "resultado",
-            "portaria",
-            "retificação",
-            "retificacao",
-            "aviso",
-        }:
+        if _title_starts(title, ("edital", "resultado", "portaria", "retificação", "aviso")):
             return False
         personnel = (
-            "concurso público",
-            "provimento",
-            "nomeação",
-            "admissão de pessoal",
-            "criação de cargos",
-            "cargos vagos",
-            "anexo de pessoal",
-            "despesa de pessoal",
+            "concurso público", "provimento", "nomeação", "admissão de pessoal",
+            "criação de cargos", "cargos vagos", "anexo de pessoal", "despesa de pessoal",
         )
         change = (
-            "altera",
-            "alteração",
-            "inclui",
-            "acrescenta",
-            "suprime",
-            "substitui",
-            "retifica",
-            "emenda",
-            "veto",
+            "altera", "alteração", "inclui", "acrescenta", "suprime", "substitui",
+            "retifica", "emenda", "veto",
         )
         legal = ("lei", "projeto de lei", "emenda", "veto", "mensagem")
         return ldo_marker and _groups_near(
             norm,
             (
                 ("lei de diretrizes orçamentárias", "diretrizes orçamentárias", " ldo "),
-                personnel,
-                change,
-                legal,
+                personnel, change, legal,
             ),
             900,
         )
 
     if category == "autorizacao_concurso":
-        if _title_kind(title) in {
-            "edital",
-            "resultado",
-            "retificação",
-            "retificacao",
-            "convocação",
-            "convocacao",
-            "homologação",
-            "homologacao",
-        }:
+        if _title_starts(title, ("edital", "resultado", "retificação", "convocação", "homologação")):
             return False
         patterns = (
             r"(?:fica\s+autorizad[ao]|autoriza(?:-se)?|autorizar)\s+(?:[^.;]{0,100}\s+)?(?:a\s+)?(?:realizacao|abertura)\s+(?:de|do)\s+(?:novo\s+)?(?:concurso\s+publico|certame)",
@@ -204,7 +159,7 @@ def _dedupe_heading(text: str, title: str) -> str:
     if not heading:
         return value
     while value.casefold().startswith(heading.casefold()):
-        value = value[len(heading) :].lstrip(" -—:.;")
+        value = value[len(heading):].lstrip(" -—:.;")
     return value
 
 
@@ -280,7 +235,6 @@ def build_presentation(document: Document, category: str, next_year: int) -> tup
             action = "Publica ato relativo ao concurso ATUB"
         sentence = _operative_sentence(raw or combined, ("curso de formação", "convoca", "nomea", "prorroga", "homologa", "resultado", "retifica", "edital"))
         summary = sentence if sentence else action + "."
-
     elif category == "ldo":
         year = _ldo_year(combined, next_year)
         jurisdiction = "federal" if document.source == "dou" else "do Distrito Federal"
@@ -290,7 +244,6 @@ def build_presentation(document: Document, category: str, next_year: int) -> tup
             summary = f"{act} estabelece as diretrizes orçamentárias {jurisdiction} para {year}."
         else:
             summary = f"A publicação estabelece as diretrizes orçamentárias {jurisdiction} para {year}."
-
     elif category == "ldo_concursos":
         year = _ldo_year(combined)
         suffix = f" de {year}" if year else ""
@@ -303,13 +256,11 @@ def build_presentation(document: Document, category: str, next_year: int) -> tup
         else:
             action = f"Altera a LDO{suffix} quanto a concursos e provimentos"
         summary = f"A publicação modifica a LDO{suffix} em dispositivos relativos a concursos, provimentos, cargos ou admissões de pessoal."
-
     elif category == "autorizacao_concurso":
         target = _authorization_target(combined, getattr(document, "organization", ""))
         action = f"Autoriza novo concurso para {target}" if target else "Autoriza a realização de novo concurso público"
         sentence = _operative_sentence(raw or combined, ("autoriza", "autorizada", "autorizar", "realização de concurso", "realizar concurso"))
         summary = sentence if sentence else action + "."
-
     else:
         action = clean_text(document.title)
         summary = _operative_sentence(raw or combined, tuple())
