@@ -37,10 +37,15 @@ class FeedItem:
     page: int | None
     excerpt: str
     matched_terms: list[str]
+    evidence: str = ""
+    identity: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "FeedItem":
-        return cls(**value)
+        payload = dict(value)
+        payload.setdefault("evidence", "")
+        payload.setdefault("identity", "")
+        return cls(**payload)
