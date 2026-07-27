@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<rss version="2.0">
+  <channel>
+    <title>Feed ainda não executado</title>
+    <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/ldo.xml</link>
+    <description>Configure o INLABS e execute o workflow para gerar este feed.</description>
+    <language>pt-BR</language>
+  </channel>
+</rss>
