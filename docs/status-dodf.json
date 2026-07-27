@@ -1,16 +1,17 @@
 {
-  "started_at": "2026-07-27T14:32:56.572463-03:00",
+  "started_at": "2026-07-27T15:21:56.002427-03:00",
   "reference_date": "2026-07-27",
   "sources": {
     "dodf": {
       "documents": 0,
       "backend": "sinj",
-      "fallback_reason": "HTTPSConnectionPool(host='www.dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1784775600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.dodf.df.gov.br', port=443) at 0x7fe6e7dfcce0>, 'Connection to www.dodf.df.gov.br timed out. (connect timeout=10)'))"
+      "fallback_reason": "HTTPSConnectionPool(host='www.dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1784775600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.dodf.df.gov.br', port=443) at 0x7f1dd34010a0>, 'Connection to www.dodf.df.gov.br timed out. (connect timeout=10)'))"
     }
   },
   "errors": [],
-  "finished_at": "2026-07-27T14:37:04.961738-03:00",
+  "finished_at": "2026-07-27T15:26:02.952528-03:00",
   "documents_examined": 0,
   "new_matches": 0,
-  "stored_items": 0
+  "stored_items": 2,
+  "items_removed_out_of_scope": 33
 }
