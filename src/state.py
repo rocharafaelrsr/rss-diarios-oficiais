@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from recollection import (
     backend_reference_key,
     legacy_semantic_key,
     metadata_is_complete,
+    reduced_reference_compatible,
     url_recollection_key,
 )
 
@@ -87,6 +89,18 @@ def _legacy_key(item: FeedItem) -> str:
     )
 
 
+def _compatible_candidate(item: FeedItem, candidates: list[FeedItem]) -> bool:
+    return any(
+        reduced_reference_compatible(
+            left_title=item.title,
+            left_evidence=item.evidence,
+            right_title=candidate.title,
+            right_evidence=candidate.evidence,
+        )
+        for candidate in candidates
+    )
+
+
 def merge_items(
     old: list[FeedItem],
     new: list[FeedItem],
@@ -97,16 +111,21 @@ def merge_items(
     cutoff = now - timedelta(days=retention_days)
 
     new_full_keys = {_refresh_recollection_key(item) for item in new}
-    new_reference_keys = {_reference_key(item) for item in new}
-    new_incomplete_reference_keys = {
-        _reference_key(item) for item in new if not _metadata_complete(item)
-    }
     new_url_keys = {_url_key(item) for item in new}
     new_legacy_keys = {_legacy_key(item) for item in new}
 
+    new_by_reference: dict[str, list[FeedItem]] = defaultdict(list)
+    new_incomplete_by_reference: dict[str, list[FeedItem]] = defaultdict(list)
+    for item in new:
+        reference_key = _reference_key(item)
+        new_by_reference[reference_key].append(item)
+        if not _metadata_complete(item):
+            new_incomplete_by_reference[reference_key].append(item)
+
     # 1. Metadados completos e iguais: usa a chave editorial estrita.
-    # 2. Se um backend omitiu edição/seção/página: usa a referência normativa.
-    # 3. Mesmo link: substitui ainda que uma correção tenha mudado o ato extraído.
+    # 2. Mesmo link: substitui ainda que uma correção tenha mudado o ato extraído.
+    # 3. Se um backend omitiu metadados: exige referência normativa E conteúdo
+    #    discriminante compatível, evitando colisões de PORTARIA Nº 1 entre órgãos.
     old_kept: list[FeedItem] = []
     for item in old:
         current_key = _refresh_recollection_key(item)
@@ -115,10 +134,12 @@ def merge_items(
 
         replaced = current_key in new_full_keys or _url_key(item) in new_url_keys
         if not replaced:
-            if not complete:
-                replaced = reference_key in new_reference_keys
-            else:
-                replaced = reference_key in new_incomplete_reference_keys
+            candidates = (
+                new_by_reference.get(reference_key, [])
+                if not complete
+                else new_incomplete_by_reference.get(reference_key, [])
+            )
+            replaced = _compatible_candidate(item, candidates)
         if not replaced and not item.evidence:
             replaced = _legacy_key(item) in new_legacy_keys
         if not replaced:
