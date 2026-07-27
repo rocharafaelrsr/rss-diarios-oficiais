@@ -5,24 +5,8 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/todos.xml</link>
     <description>ATUB, LDO e autorizações de concursos no DODF e no DOU.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Mon, 27 Jul 2026 15:21:56 -0300</lastBuildDate>
+    <lastBuildDate>Mon, 27 Jul 2026 15:26:17 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
-    <item>
-      <title>[DOU] Altera a LDO de 2026 quanto a concursos e provimentos</title>
-      <link>https://www.in.gov.br/consulta/-/buscar/dou?q=PORTARIA+PRE+N%C2%BA+254%2C+DE+24+DE+JULHO+DE+2026&amp;s=todos&amp;exactDate=personalizado&amp;sortType=0&amp;publishFrom=27-07-2026&amp;publishTo=27-07-2026</link>
-      <guid isPermaLink="false">5092d436ada72dd0d0a43d9b882823eacb60beeb271e52a4f5c0723e6693c2ef</guid>
-      <pubDate>Mon, 27 Jul 2026 06:00:00 -0300</pubDate>
-      <category>Alteração da LDO sobre concursos</category>
-      <description>A publicação modifica a LDO de 2026 em dispositivos relativos a concursos, provimentos, cargos ou admissões de pessoal</description>
-    </item>
-    <item>
-      <title>[DOU] Altera a LDO de 2026 quanto a concursos e provimentos</title>
-      <link>https://www.in.gov.br/consulta/-/buscar/dou?q=PORTARIA+DE+PESSOAL+N%C2%BA+249%2C+DE+22+DE+JULHO+DE+2026&amp;s=todos&amp;exactDate=personalizado&amp;sortType=0&amp;publishFrom=23-07-2026&amp;publishTo=23-07-2026</link>
-      <guid isPermaLink="false">333ad4ed599d954d15be033038a21ccdd6d55b882b0d7766052b829b610c79c6</guid>
-      <pubDate>Thu, 23 Jul 2026 06:00:00 -0300</pubDate>
-      <category>Alteração da LDO sobre concursos</category>
-      <description>A publicação modifica a LDO de 2026 em dispositivos relativos a concursos, provimentos, cargos ou admissões de pessoal</description>
-    </item>
   </channel>
 </rss>
