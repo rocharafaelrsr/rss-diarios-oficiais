@@ -85,7 +85,7 @@ def test_primary_listing_uses_one_fast_request_without_warmup(monkeypatch):
         "https://dodf.df.gov.br/dodf/jornal/visualizar-pdf?arquivo=DODF+135.pdf"
     ]
     assert calls == [
-        ("https://www.dodf.df.gov.br/dodf/jornal/diario", (3, 10))
+        ("https://dodf.df.gov.br/dodf/jornal/diario", (3, 10))
     ]
     assert collector.primary_attempts == 1
 
