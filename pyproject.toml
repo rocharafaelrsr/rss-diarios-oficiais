@@ -1,0 +1,19 @@
+[project]
+name = "rss-diarios-oficiais"
+version = "1.0.0"
+description = "Coletor de publicações relevantes do DODF e DOU com geração de feeds RSS 2.0"
+requires-python = ">=3.11"
+dependencies = [
+  "beautifulsoup4==4.13.4",
+  "defusedxml==0.7.1",
+  "PyMuPDF==1.26.3",
+  "PyYAML==6.0.2",
+  "requests==2.32.4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.4.1"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

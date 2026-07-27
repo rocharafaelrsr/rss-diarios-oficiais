@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>Diários Oficiais — Feeds temáticos</title></head>
+  <body>
+    <outline text="DODF — Concurso ATUB" title="DODF — Concurso ATUB" type="rss" xmlUrl="https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/atub.xml" />
+    <outline text="DODF e DOU — LDO" title="DODF e DOU — LDO" type="rss" xmlUrl="https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/ldo.xml" />
+    <outline text="DODF e DOU — Autorizações de concursos" title="DODF e DOU — Autorizações de concursos" type="rss" xmlUrl="https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/autorizacoes-concursos.xml" />
+  </body>
+</opml>

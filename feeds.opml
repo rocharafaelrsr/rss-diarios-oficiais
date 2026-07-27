@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>Diários Oficiais — Feed geral</title></head>
+  <body>
+    <outline text="Diários Oficiais — Todos" title="Diários Oficiais — Todos" type="rss" xmlUrl="https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/todos.xml" />
+  </body>
+</opml>
