@@ -22,6 +22,11 @@ def test_lists_only_official_pdf_links():
     assert urls == ["https://www.dodf.df.gov.br/dodf/jornal/visualizar-pdf?arquivo=DODF+1.pdf"]
 
 
+def test_tries_non_www_host_first():
+    collector = DodfCollector(Client(), "https://www.dodf.df.gov.br/dodf/jornal/diario")
+    assert collector._daily_candidates()[0].startswith("https://dodf.df.gov.br/")
+
+
 def test_parse_sinj_result_links():
     html = '''
     <a href="/sinj/TextoArquivoDiario.aspx?id_file=53964389-f756-33d0-91d0-fae8298a04e3">DODF</a>
