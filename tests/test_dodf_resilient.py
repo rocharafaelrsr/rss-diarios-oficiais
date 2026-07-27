@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import requests
 
 from diarios.dodf_resilient import ResilientDodfCollector
-from main import dodf_business_day_health
+from main_dodf import dodf_business_day_health
 
 
 class FakeClient:
