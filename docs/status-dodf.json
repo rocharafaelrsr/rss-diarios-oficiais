@@ -1,0 +1,20 @@
+{
+  "started_at": "2026-07-27T14:00:55.377369-03:00",
+  "reference_date": "2026-07-27",
+  "sources": {
+    "dodf": {
+      "documents": 0
+    }
+  },
+  "errors": [
+    {
+      "source": "dodf",
+      "date": "2026-07-27",
+      "error": "HTTPSConnectionPool(host='www.dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785121200 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.dodf.df.gov.br', port=443) at 0x7f6fab325580>, 'Connection to www.dodf.df.gov.br timed out. (connect timeout=10)'))"
+    }
+  ],
+  "finished_at": "2026-07-27T14:02:17.714658-03:00",
+  "documents_examined": 0,
+  "new_matches": 0,
+  "stored_items": 0
+}

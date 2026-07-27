@@ -1,9 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
 <rss version="2.0">
   <channel>
-    <title>Feed ainda não executado</title>
+    <title>DODF e DOU — Autorizações de concursos</title>
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/autorizacoes-concursos.xml</link>
-    <description>Configure o INLABS e execute o workflow para gerar este feed.</description>
+    <description>Atos que autorizem ou alterem a autorização de novos concursos públicos.</description>
     <language>pt-BR</language>
+    <lastBuildDate>Mon, 27 Jul 2026 14:00:55 -0300</lastBuildDate>
+    <generator>rss-diarios-oficiais/1.0</generator>
+    <ttl>60</ttl>
   </channel>
 </rss>
