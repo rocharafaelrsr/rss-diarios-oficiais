@@ -6,6 +6,7 @@ from urllib.parse import urlsplit, urlunsplit
 from text_utils import clean_text, normalize, sha256_text
 
 ACT_TYPE_PATTERN = (
+    r"decreto(?:\s*-\s*|\s+)lei|"
     r"instrucao\s+normativa|ordem\s+de\s+servico|"
     r"lei|portaria|edital|decreto|resolucao|ato|despacho|aviso"
 )
@@ -14,7 +15,8 @@ ACT_TYPE_PATTERN = (
 ACT_REFERENCE_RE = re.compile(
     rf"\b(?P<kind>{ACT_TYPE_PATTERN})\b"
     r"(?P<qualifier>(?:\s+(?!n\s*[º°o]?\s*\d)[a-z0-9./-]+){0,8})"
-    r"\s+n\s*[º°o]?\s*(?P<number>\d[\d\s./-]*)",
+    r"\s+n\s*[º°o]?\s*"
+    r"(?P<number>\d(?:[\d\s./-]*\d)?(?:\s*-\s*[a-z]+)?)",
     flags=re.I,
 )
 SEMANTIC_PREFIX_RE = re.compile(r"^\[(?:DOU|DODF)\]\s*", flags=re.I)
@@ -52,19 +54,26 @@ def _canonical_semantic_title(title: str) -> str:
 
 
 def _canonical_act_number(value: str) -> str:
-    groups = re.findall(r"\d+", value)
+    normalized = normalize(value).strip()
+    suffix_match = re.search(r"-\s*([a-z]+)\s*$", normalized)
+    suffix = suffix_match.group(1) if suffix_match else ""
+    numeric_value = normalized[: suffix_match.start()] if suffix_match else normalized
+    groups = re.findall(r"\d+", numeric_value)
     if not groups:
         return ""
+
     # 001/2026, 1-2026 e 01 / 2026 são a mesma referência. Pontos sem
     # ano final são tratados como separadores de milhar: 15.300 == 15300.
     if len(groups) >= 2 and len(groups[-1]) == 4 and 1900 <= int(groups[-1]) <= 2199:
         main = int("".join(groups[:-1]))
-        return f"{main}/{int(groups[-1])}"
-    return str(int("".join(groups)))
+        base = f"{main}/{int(groups[-1])}"
+    else:
+        base = str(int("".join(groups)))
+    return f"{base}-{suffix}" if suffix else base
 
 
 def _canonical_act_match(match: re.Match[str]) -> str:
-    kind = re.sub(r"\s+", "-", match.group("kind").strip())
+    kind = re.sub(r"[\s-]+", "-", match.group("kind").strip())
     qualifier = _slug(match.group("qualifier"))
     number = _canonical_act_number(match.group("number"))
     parts = [kind]
