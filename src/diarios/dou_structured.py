@@ -19,11 +19,7 @@ SEARCH_SCRIPT_ID = "_br_com_seatecnologia_in_buscadou_BuscaDouPortlet_params"
 
 
 class StructuredDouCollector(DouCollector):
-    """Fallback público baseado no JSON consumido pelo próprio buscador do DOU.
-
-    O formato é o mesmo adotado pelo Ro-DOU. Se o portal alterar esse JSON, o
-    parser HTML herdado continua disponível como contingência.
-    """
+    """Fallback público baseado no JSON consumido pelo buscador oficial do DOU."""
 
     @staticmethod
     def _public_records(html: str) -> list[dict[str, object]] | None:
@@ -37,8 +33,24 @@ class StructuredDouCollector(DouCollector):
         except (TypeError, json.JSONDecodeError):
             LOG.warning("DOU público: JSON estruturado inválido")
             return None
-        records = payload.get("jsonArray", []) if isinstance(payload, dict) else []
-        return [record for record in records if isinstance(record, dict)]
+        if not isinstance(payload, dict) or "jsonArray" not in payload:
+            return None
+        records = payload["jsonArray"]
+        if not isinstance(records, list) or any(not isinstance(record, dict) for record in records):
+            LOG.warning("DOU público: jsonArray com formato inesperado")
+            return None
+        return records
+
+    @staticmethod
+    def _page_count(html: str) -> int:
+        soup = BeautifulSoup(html, "html.parser")
+        last = soup.find("button", id="lastPage")
+        if last is not None:
+            try:
+                return max(1, min(50, int(clean_text(last.get_text()))))
+            except ValueError:
+                pass
+        return 2 if soup.find("button", id="2btn") is not None else 1
 
     @staticmethod
     def _int_or_none(value: object) -> int | None:
@@ -100,41 +112,68 @@ class StructuredDouCollector(DouCollector):
         last_error: Exception | None = None
 
         for term in self.public_search_terms:
+            base_params: dict[str, object] = {
+                "q": term,
+                "s": "todos",
+                "exactDate": "personalizado",
+                "sortType": "0",
+                "delta": "200",
+                "publishFrom": br_date,
+                "publishTo": br_date,
+            }
             try:
-                response = self.client.get(
-                    self.public_search_url,
-                    params={
-                        "q": term,
-                        "s": "todos",
-                        "exactDate": "personalizado",
-                        "sortType": "0",
-                        "publishFrom": br_date,
-                        "publishTo": br_date,
-                    },
-                )
+                response = self.client.get(self.public_search_url, params=base_params)
                 succeeded = True
             except Exception as exc:
                 last_error = exc
                 LOG.warning("DOU público: busca por %r falhou: %s", term, exc)
                 continue
 
-            records = self._public_records(response.text)
-            if records is not None:
+            total_pages = self._page_count(response.text)
+            for page_index in range(total_pages):
+                records = self._public_records(response.text)
+                if records is None:
+                    for url in self._public_result_links(response.text, response.url):
+                        if url not in seen_urls and url not in fallback_urls:
+                            fallback_urls.append(url)
+                    break
+
                 for record in records:
                     document = self._document_from_record(record, day)
                     if document and document.url not in seen_urls:
                         seen_urls.add(document.url)
                         documents.append(document)
-                continue
 
-            for url in self._public_result_links(response.text, response.url):
-                if url not in seen_urls and url not in fallback_urls:
-                    fallback_urls.append(url)
+                if page_index + 1 >= total_pages or not records:
+                    break
+                last = records[-1]
+                record_id = last.get("classPK")
+                display_date = last.get("displayDateSortable")
+                if not record_id or not display_date:
+                    LOG.warning("DOU público: paginação sem cursores; usando links HTML de contingência")
+                    for url in self._public_result_links(response.text, response.url):
+                        if url not in seen_urls and url not in fallback_urls:
+                            fallback_urls.append(url)
+                    break
+
+                page_params = dict(base_params)
+                page_params.update(
+                    {
+                        "id": record_id,
+                        "displayDate": display_date,
+                        "newPage": page_index + 2,
+                        "currentPage": page_index + 1,
+                    }
+                )
+                try:
+                    response = self.client.get(self.public_search_url, params=page_params)
+                except Exception as exc:
+                    LOG.warning("DOU público: página %d falhou: %s", page_index + 2, exc)
+                    break
 
         if not succeeded and last_error is not None:
             raise last_error
 
-        # Contingência: se o JSON desaparecer, abre as páginas como no coletor anterior.
         for url in fallback_urls:
             try:
                 response = self.client.get(url)
