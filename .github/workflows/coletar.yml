@@ -79,7 +79,7 @@ jobs:
       - name: Publicar estado do DODF
         if: always()
         run: |
-          if git diff --quiet -- data/items.json docs/feeds docs/status-dodf.json; then
+          if [ -z "$(git status --porcelain -- data/items.json docs/feeds docs/status-dodf.json)" ]; then
             echo "Sem alterações."
           else
             git config user.name "rss-diarios-bot"
@@ -140,7 +140,7 @@ jobs:
       - name: Publicar estado do DOU
         if: always()
         run: |
-          if git diff --quiet -- data/items.json docs/feeds docs/status-dou.json; then
+          if [ -z "$(git status --porcelain -- data/items.json docs/feeds docs/status-dou.json)" ]; then
             echo "Sem alterações."
           else
             git config user.name "rss-diarios-bot"
