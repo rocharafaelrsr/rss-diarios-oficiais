@@ -1,19 +1,27 @@
 from __future__ import annotations
 
 import io
+import json
 import logging
+import re
 from datetime import date, datetime, time
+from typing import Any
 from urllib.parse import urljoin, urlparse
 
 import fitz
 import requests
 from bs4 import BeautifulSoup
 
-from diarios.dodf import BRT, DodfCollector, OFFICIAL_HOSTS
+from diarios.dodf import BRT, DodfCollector, OFFICIAL_HOSTS, SINJ_HOSTS
 from models import Document
 from text_utils import clean_text
 
 LOG = logging.getLogger(__name__)
+SINJ_DODF_SOURCE_KEY = "1"
+SINJ_FILE_ID_RE = re.compile(
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+    flags=re.I,
+)
 
 
 class PrimaryCircuitOpen(ConnectionError):
@@ -25,7 +33,7 @@ class PrimaryPdfFailure(ConnectionError):
 
 
 class ResilientDodfCollector(DodfCollector):
-    """DODF com tentativa primária curta e circuito aberto por execução."""
+    """DODF com portal primário curto e fallback oficial pelo diretório do SINJ."""
 
     def __init__(
         self,
@@ -41,6 +49,7 @@ class ResilientDodfCollector(DodfCollector):
         self.primary_circuit_reason = ""
         self.primary_attempts = 0
         self.primary_skipped_dates: list[str] = []
+        self._sinj_month_cache: dict[tuple[int, int], list[dict[str, Any]]] = {}
 
     def _open_circuit(self, reason: Exception | str) -> None:
         self.primary_circuit_open = True
@@ -102,6 +111,135 @@ class ResilientDodfCollector(DodfCollector):
         if last_error is not None:
             raise last_error
         return []
+
+    @staticmethod
+    def _sinj_records_from_payload(payload: Any) -> list[dict[str, Any]]:
+        """Localiza registros de diário mesmo se o SINJ mudar o envelope JSON."""
+        records: list[dict[str, Any]] = []
+        seen: set[str] = set()
+
+        def visit(value: Any) -> None:
+            if isinstance(value, str):
+                stripped = value.strip()
+                if stripped.startswith("{") or stripped.startswith("["):
+                    try:
+                        visit(json.loads(stripped))
+                    except (TypeError, ValueError, json.JSONDecodeError):
+                        return
+                return
+            if isinstance(value, list):
+                for item in value:
+                    visit(item)
+                return
+            if not isinstance(value, dict):
+                return
+
+            if "dt_assinatura" in value and "arquivos" in value:
+                identity = str(
+                    value.get("ch_diario")
+                    or value.get("ch_para_nao_duplicacao")
+                    or (
+                        value.get("dt_assinatura"),
+                        value.get("nr_diario"),
+                        value.get("nm_tipo_edicao"),
+                        value.get("secao_diario"),
+                    )
+                )
+                if identity not in seen:
+                    seen.add(identity)
+                    records.append(value)
+                return
+
+            for child in value.values():
+                visit(child)
+
+        visit(payload)
+        return records
+
+    def _sinj_month_records(self, day: date) -> list[dict[str, Any]]:
+        cache_key = (day.year, day.month)
+        cached = self._sinj_month_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        directory_url = urljoin(self.sinj_search_url, "PesquisarDiretorioDiario.aspx")
+        api_url = urljoin(self.sinj_search_url, "ashx/Consulta/DiarioConsulta.ashx")
+
+        # Replica a navegação oficial antes do AJAX e mantém cookies na mesma sessão.
+        self.client.get(directory_url)
+        response = self.client.session.post(
+            api_url,
+            params={"iDisplayStart": "0", "iDisplayLength": "300"},
+            data={
+                "tipo_pesquisa": "diretorio_diario",
+                "ch_tipo_fonte": SINJ_DODF_SOURCE_KEY,
+                "ano": str(day.year),
+                "mes": str(day.month),
+            },
+            headers={
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "X-Requested-With": "XMLHttpRequest",
+                "Referer": directory_url,
+            },
+            timeout=self.client.request_timeout,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        records = self._sinj_records_from_payload(payload)
+        self._sinj_month_cache[cache_key] = records
+        LOG.info(
+            "SINJ: diretório oficial retornou %d registros para %02d/%d",
+            len(records),
+            day.month,
+            day.year,
+        )
+        return records
+
+    @staticmethod
+    def _sinj_file_ids(record: dict[str, Any]) -> list[str]:
+        output: list[str] = []
+        arquivos = record.get("arquivos")
+        if not isinstance(arquivos, list):
+            return output
+        for entry in arquivos:
+            if not isinstance(entry, dict):
+                continue
+            arquivo = entry.get("arquivo_diario")
+            if not isinstance(arquivo, dict):
+                continue
+            file_id = str(arquivo.get("id_file") or "").strip()
+            if SINJ_FILE_ID_RE.fullmatch(file_id) and file_id not in output:
+                output.append(file_id)
+        return output
+
+    def _sinj_urls(self, day: date) -> list[str]:
+        """Descobre os arquivos pela API oficial do diretório, filtrando a data exata."""
+        try:
+            records = self._sinj_month_records(day)
+        except Exception as exc:
+            LOG.warning("SINJ: API de diretórios falhou; usando pesquisa HTML legada: %s", exc)
+            return super()._sinj_urls(day)
+
+        target = day.strftime("%d/%m/%Y")
+        urls: list[str] = []
+        for record in records:
+            if clean_text(str(record.get("dt_assinatura") or "")) != target:
+                continue
+            if record.get("st_pendente") is True:
+                continue
+            for file_id in self._sinj_file_ids(record):
+                absolute = urljoin(
+                    self.sinj_search_url,
+                    f"BaixarArquivoDiario.aspx?id_file={file_id}",
+                )
+                parsed = urlparse(absolute)
+                if parsed.scheme != "https" or (parsed.hostname or "").casefold() not in SINJ_HOSTS:
+                    continue
+                if absolute not in urls:
+                    urls.append(absolute)
+
+        LOG.info("SINJ %s: API de diretórios encontrou %d arquivo(s)", day.isoformat(), len(urls))
+        return urls
 
     def _collect_primary(self, day: date) -> list[Document]:
         """Baixa todos os PDFs e só propaga falha quando cada arquivo falhou."""
