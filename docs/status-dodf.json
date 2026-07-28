@@ -1,31 +1,31 @@
 {
-  "started_at": "2026-07-27T21:05:36.711012-03:00",
-  "reference_date": "2026-07-27",
+  "started_at": "2026-07-28T09:13:17.201113-03:00",
+  "reference_date": "2026-07-28",
   "sources": {
     "dodf": {
       "documents": 0,
       "backend": "sinj",
-      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785121200 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f4146d8cce0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785207600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f36e8ccd700>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "documents_by_date": {
+        "2026-07-28": 0,
         "2026-07-27": 0,
         "2026-07-26": 0,
         "2026-07-25": 0,
-        "2026-07-24": 0,
-        "2026-07-23": 0
+        "2026-07-24": 0
       },
       "primary_attempts": 1,
       "primary_circuit_open": true,
-      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785121200 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f4146d8cce0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785207600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f36e8ccd700>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "primary_skipped_dates": [
+        "2026-07-27",
         "2026-07-26",
         "2026-07-25",
-        "2026-07-24",
-        "2026-07-23"
+        "2026-07-24"
       ],
       "business_days_checked": [
+        "2026-07-28",
         "2026-07-27",
-        "2026-07-24",
-        "2026-07-23"
+        "2026-07-24"
       ],
       "business_days_with_documents": [],
       "healthy": false
@@ -34,11 +34,11 @@
   "errors": [
     {
       "source": "dodf",
-      "date": "2026-07-27",
+      "date": "2026-07-28",
       "error": "Nenhum documento do DODF foi obtido nos dias úteis da janela; o resultado vazio não será publicado como coleta válida."
     }
   ],
-  "finished_at": "2026-07-27T21:05:42.879476-03:00",
+  "finished_at": "2026-07-28T09:13:24.797514-03:00",
   "documents_examined": 0,
   "new_matches": 0,
   "stored_items": 0,
