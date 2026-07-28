@@ -31,7 +31,7 @@ feeds:
     categories: [atub, ldo, ldo_concursos, autorizacao_concurso]
   atub:
     title: "DODF — Concurso ATUB"
-    description: "Atos relativos à carreira Auditoria de Atividades Urbanas e seus concursos."
+    description: "Atos relativos aos concursos da carreira Auditoria de Atividades Urbanas."
     categories: [atub]
   ldo:
     title: "DODF e DOU — LDO e concursos"
@@ -47,7 +47,7 @@ rules:
     label: "Concurso ATUB"
     sources: [dodf]
     priority: 10
-    max_span_chars: 1200
+    max_span_chars: 900
     any_phrases:
       - "auditor fiscal de atividades urbanas"
       - "auditoria de atividades urbanas"
@@ -58,23 +58,26 @@ rules:
       - "edital 01/2022"
       - " atub "
     context_any:
-      - "concurso"
+      - "concurso público"
+      - "concurso para auditor"
+      - "concurso da carreira"
+      - "certame"
       - "curso de formação"
-      - "convoca"
-      - "nomea"
-      - "homologa"
-      - "prorroga"
-      - "resultado"
-      - "retifica"
-      - "reposicion"
-      - "desist"
-      - "aprovad"
-      - "candidato"
-      - "classifica"
+      - "candidato do concurso"
+      - "candidatos do concurso"
+      - "candidato aprovado"
+      - "candidatos aprovados"
+      - "aprovado no concurso"
+      - "aprovados no concurso"
+      - "classificado no concurso"
+      - "classificados no concurso"
       - "cadastro de reserva"
+      - "resultado final do concurso"
       - "validade do concurso"
-      - "edital"
-      - "inscrição"
+      - "inscrição no concurso"
+      - "edital nº 01/2022"
+      - "edital n° 01/2022"
+      - "edital 01/2022"
     unconditional_phrases:
       - "edital nº 01/2022"
       - "edital n° 01/2022"
