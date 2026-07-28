@@ -13,6 +13,12 @@ def normalize(text: str) -> str:
     value = unicodedata.normalize("NFKD", text or "")
     value = "".join(ch for ch in value if not unicodedata.combining(ch))
     value = value.casefold()
+    # Uniformiza as grafias editoriais de número antes de aplicar regras. Em
+    # NFKD, "º" vira "o", enquanto "n.º" vira "n.o" e "n°" preserva o grau.
+    value = re.sub(r"\bn\s*(?:\.\s*)?(?:o|°)\s*(?=\d)", "no ", value)
+    # O Edital 01/2022 é uma identidade documental: zero à esquerda e prefixo
+    # "nº" não devem alterar a correspondência estrita.
+    value = re.sub(r"\bedital\s+(?:no\s+)?0?1/2022\b", "edital no 01/2022", value)
     return " " + SPACE_RE.sub(" ", value).strip() + " "
 
 
