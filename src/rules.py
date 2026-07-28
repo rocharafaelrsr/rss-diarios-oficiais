@@ -11,16 +11,27 @@ from text_utils import clean_text, normalize
 # termos correspondentes serem persistidos no FeedItem.
 ACT_MATCH_SENTINEL = "\x00RSR_ACT\x00"
 
-# Número de ato com marcador normal ou fallback OCR estritamente maiúsculo.
-# O fallback "NO" exige ano com barra para não confundir a preposição "no".
+# Formas OCR do marcador "Nº". São estritamente maiúsculas e exigem /ano para
+# não confundir a preposição portuguesa "no" com um número de ato.
+ACT_OCR_NUMBER_RE = r"(?-i:N\s*(?:\.\s*)?O)\s*\d+(?:/\d{2,4})"
+
+# Cabeçalhos simples historicamente aceitam número sem marcador: EDITAL 3/2027,
+# PORTARIA 12 etc. Também preservam Nº/N°/N.º e as formas OCR NO/N.O/N O.
 ACT_NUMBER_RE = (
     r"(?:(?:N(?:\s*\.\s*)?[º°]?\s*)?\d"
-    r"|(?-i:NO)\s*\d+(?:/\d{2,4}))"
+    r"|" + ACT_OCR_NUMBER_RE + r")"
+)
+
+# Editais qualificados exigem marcador explícito. Assim, prosa como
+# "EDITAL DE CONVOCAÇÃO 50 candidatos" não cria uma fronteira artificial.
+ACT_REQUIRED_NUMBER_RE = (
+    r"(?:N(?:\s*\.\s*)?[º°]?\s*\d"
+    r"|" + ACT_OCR_NUMBER_RE + r")"
 )
 
 # A regra same_act reconhece os mesmos limites editoriais usados pelo extrator.
 # EDITAL simples aceita número com ou sem marcador; EDITAL qualificado exige
-# Nº/N°/N.º (ou OCR "NO" com ano), usa até oito tokens e não atravessa pontuação.
+# marcador normal ou OCR, usa até oito tokens e não atravessa pontuação.
 ACT_MARKER_RE = re.compile(
     r"(?<!\w)(?:"
     r"(?:DECRETO(?:\s*[-–—]\s*|\s+)LEI|PROJETO\s+DE\s+LEI|"
@@ -29,7 +40,7 @@ ACT_MARKER_RE = re.compile(
     r"\s+" + ACT_NUMBER_RE +
     r"|EDITAL\s+" + ACT_NUMBER_RE +
     r"|EDITAL(?:\s+[\wªº°-]+){1,8}"
-    r"(?:\s+(?:[-–—]\s*)?|[-–—]\s*)" + ACT_NUMBER_RE +
+    r"(?:\s+(?:[-–—]\s*)?|[-–—]\s*)" + ACT_REQUIRED_NUMBER_RE +
     r")",
     flags=re.I | re.U,
 )
