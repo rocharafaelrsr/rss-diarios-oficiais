@@ -1,5 +1,5 @@
 {
-  "started_at": "2026-07-28T11:51:09.101469-03:00",
+  "started_at": "2026-07-28T12:34:44.136244-03:00",
   "reference_date": "2026-07-28",
   "sources": {
     "dou": {
@@ -9,7 +9,7 @@
     }
   },
   "errors": [],
-  "finished_at": "2026-07-28T11:52:45.755665-03:00",
+  "finished_at": "2026-07-28T12:35:53.443300-03:00",
   "documents_examined": 10097,
   "new_matches": 0,
   "stored_items": 0,
