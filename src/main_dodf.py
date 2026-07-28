@@ -136,12 +136,9 @@ def main() -> int:
             status["errors"].append(
                 {"source": "dodf", "date": day.isoformat(), "error": str(exc)[:500]}
             )
-            # Falhas locais do SINJ, especialmente em fins de semana, não impedem
-            # tentar os dias úteis seguintes. Só interrompemos quando o primário
-            # já está comprovadamente indisponível para toda a execução.
-            if collector.primary_circuit_open:
-                LOG.warning("DODF: circuito primário aberto e fallback falhou; encerrando janela")
-                break
+            # Cada consulta ao SINJ é específica da data. Mesmo com o circuito
+            # primário aberto, uma falha de fallback hoje não prova que as datas
+            # anteriores também falharão; seguimos por toda a janela.
             LOG.warning("DODF: falha limitada à data %s; seguindo para a próxima data", day)
 
     health = dodf_business_day_health(days, day_counts)
