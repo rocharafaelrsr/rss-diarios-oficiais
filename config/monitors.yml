@@ -51,8 +51,14 @@ rules:
     max_span_chars: 1800
     any_phrases:
       - "auditor fiscal de atividades urbanas"
+      - "auditora fiscal de atividades urbanas"
+      - "auditores fiscais de atividades urbanas"
+      - "auditoras fiscais de atividades urbanas"
       - "auditoria de atividades urbanas"
       - "auditor de atividades urbanas"
+      - "auditora de atividades urbanas"
+      - "auditores de atividades urbanas"
+      - "auditoras de atividades urbanas"
       - "carreira auditoria de atividades urbanas"
       - "edital nº 01/2022"
       - "edital n° 01/2022"

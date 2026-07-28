@@ -19,6 +19,19 @@ def normalize(text: str) -> str:
     # O Edital 01/2022 é uma identidade documental: zero à esquerda e prefixo
     # "nº" não devem alterar a correspondência estrita.
     value = re.sub(r"\bedital\s+(?:no\s+)?0?1/2022\b", "edital no 01/2022", value)
+    # Os títulos da carreira variam em gênero e número, mas representam a mesma
+    # âncora semântica. A canonicalização é restrita às denominações ATUB para
+    # que regras e validação estrita usem a mesma identidade textual.
+    value = re.sub(
+        r"\bauditor(?:a|es|as)?\s+fisc(?:al|ais)\s+de\s+atividades\s+urbanas\b",
+        "auditor fiscal de atividades urbanas",
+        value,
+    )
+    value = re.sub(
+        r"\bauditor(?:a|es|as)?\s+de\s+atividades\s+urbanas\b",
+        "auditor de atividades urbanas",
+        value,
+    )
     return " " + SPACE_RE.sub(" ", value).strip() + " "
 
 

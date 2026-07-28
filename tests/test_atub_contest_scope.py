@@ -72,11 +72,16 @@ def test_atub_rule_does_not_combine_adjacent_acts():
         "EDITAL DE ABERTURA Nº 3/2027",
         "EDITAL NORMATIVO Nº 3/2027",
         "EDITAL DE CONCURSO PÚBLICO Nº 3/2027",
+        "EDITAL DE CONVOCAÇÃO Nº 3/2027",
+        "EDITAL DE RESULTADO Nº 3/2027",
+        "EDITAL DE RETIFICAÇÃO Nº 3/2027",
+        "EDITAL DE HOMOLOGAÇÃO DO RESULTADO Nº 3/2027",
+        "EDITAL DE DIVULGAÇÃO DO RESULTADO PROVISÓRIO Nº 3/2027",
     ],
 )
 def test_qualified_edital_headers_are_act_boundaries(qualified_header: str):
     page = (
-        "PORTARIA Nº 12/2026. Designar João, Auditor Fiscal de Atividades Urbanas, "
+        "PORTARIA Nº 12/2026. Designar Maria, Auditora Fiscal de Atividades Urbanas, "
         "para exercer cargo em comissão. "
         f"{qualified_header}. Torna público concurso público para o cargo de Analista."
     )
@@ -95,6 +100,18 @@ def test_cited_edital_remains_inside_containing_act():
     assert "objeto do EDITAL Nº 3/2027" in evidence
 
 
+def test_cited_qualified_edital_remains_inside_containing_act():
+    page = (
+        "PORTARIA Nº 21/2027. Convocar candidatas aprovadas no concurso público objeto do "
+        "EDITAL DE ABERTURA Nº 4/2027 para o cargo de Auditora Fiscal de Atividades Urbanas."
+    )
+    matched = _atub_rule().match("dodf", page)
+    assert matched is not None
+    evidence = extract_matched_act(page, matched)
+    assert evidence.startswith("PORTARIA Nº 21/2027")
+    assert "objeto do EDITAL DE ABERTURA Nº 4/2027" in evidence
+
+
 @pytest.mark.parametrize(
     "text",
     [
@@ -103,11 +120,11 @@ def test_cited_edital_remains_inside_containing_act():
             "Fiscal de Atividades Urbanas, observada a ordem de classificação."
         ),
         (
-            "NOMEAR Maria, candidata aprovada e classificada, para o cargo de Auditor "
+            "NOMEAR Maria, candidata aprovada e classificada, para o cargo de Auditora "
             "Fiscal de Atividades Urbanas."
         ),
         (
-            "NOMEAR Ana e Beatriz, candidatas aprovadas, para o cargo de Auditor Fiscal "
+            "NOMEAR Ana e Beatriz, candidatas aprovadas, para o cargo de Auditoras Fiscais "
             "de Atividades Urbanas."
         ),
         (
@@ -120,22 +137,22 @@ def test_cited_edital_remains_inside_containing_act():
         ),
         (
             "Torna público o resultado definitivo da prova discursiva para o cargo de "
-            "Auditor Fiscal de Atividades Urbanas."
+            "Auditora Fiscal de Atividades Urbanas."
         ),
         (
-            "Homologa o resultado final para o cargo de Auditor Fiscal de Atividades "
+            "Homologa o resultado final para o cargo de Auditora Fiscal de Atividades "
             "Urbanas."
         ),
         (
-            "TORNAR SEM EFEITO, em virtude de desistência expressa, a nomeação de João "
-            "para o cargo de Auditor Fiscal de Atividades Urbanas."
+            "TORNAR SEM EFEITO, em virtude de desistência expressa, a nomeação de Maria "
+            "para o cargo de Auditora Fiscal de Atividades Urbanas."
         ),
         (
             "Reposicionar Maria para o final da lista de classificação do concurso para "
-            "o cargo de Auditor Fiscal de Atividades Urbanas."
+            "o cargo de Auditora Fiscal de Atividades Urbanas."
         ),
         (
-            "Retifica o Edital Normativo nº 03/2027 para o cargo de Auditor Fiscal de "
+            "Retifica o Edital Normativo nº 03/2027 para o cargo de Auditora Fiscal de "
             "Atividades Urbanas."
         ),
         "Retificação do Edital n.º 01/2022 da carreira Auditoria de Atividades Urbanas.",
@@ -144,6 +161,20 @@ def test_cited_edital_remains_inside_containing_act():
 )
 def test_atub_rule_accepts_explicit_contest_acts(text: str):
     assert _atub_rule().match("dodf", text) is not None
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Auditora Fiscal de Atividades Urbanas",
+        "Auditoras Fiscais de Atividades Urbanas",
+        "Auditora de Atividades Urbanas",
+        "Auditoras de Atividades Urbanas",
+    ],
+)
+def test_strict_relevance_accepts_feminine_atub_titles(title: str):
+    text = f"NOMEAR Maria, candidata aprovada, para o cargo de {title}."
+    assert strictly_relevant("atub", "dodf", "Nomeação", text, 2027)
 
 
 @pytest.mark.parametrize(
@@ -186,8 +217,8 @@ def test_long_selected_act_preserves_late_matched_region():
     page = (
         "PORTARIA Nº 99/2027. "
         + filler
-        + "NOMEAR os candidatos aprovados no concurso público para o cargo de Auditor "
-        "Fiscal de Atividades Urbanas, observada a ordem de classificação."
+        + "NOMEAR as candidatas aprovadas no concurso público para o cargo de Auditoras "
+        "Fiscais de Atividades Urbanas, observada a ordem de classificação."
     )
     matched = _atub_rule().match("dodf", page)
     assert matched is not None
@@ -195,11 +226,11 @@ def test_long_selected_act_preserves_late_matched_region():
     evidence = extract_matched_act(page, matched)
 
     assert len(evidence) <= MAX_EVIDENCE + 4
-    assert "candidatos aprovados no concurso público" in evidence
-    assert "Auditor Fiscal de Atividades Urbanas" in evidence
+    assert "candidatas aprovadas no concurso público" in evidence
+    assert "Auditoras Fiscais de Atividades Urbanas" in evidence
     assert strictly_relevant("atub", "dodf", "PORTARIA Nº 99/2027", evidence, 2027)
 
 
 def test_atub_rule_remains_dodf_only():
-    text = "Concurso público para Auditor Fiscal de Atividades Urbanas."
+    text = "Concurso público para Auditora Fiscal de Atividades Urbanas."
     assert _atub_rule().match("dou", text) is None
