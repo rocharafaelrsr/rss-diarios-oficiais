@@ -11,17 +11,25 @@ from text_utils import clean_text, normalize
 # termos correspondentes serem persistidos no FeedItem.
 ACT_MATCH_SENTINEL = "\x00RSR_ACT\x00"
 
+# Número de ato com marcador normal ou fallback OCR estritamente maiúsculo.
+# O fallback "NO" exige ano com barra para não confundir a preposição "no".
+ACT_NUMBER_RE = (
+    r"(?:(?:N(?:\s*\.\s*)?[º°]?\s*)?\d"
+    r"|(?-i:NO)\s*\d+(?:/\d{2,4}))"
+)
+
 # A regra same_act reconhece os mesmos limites editoriais usados pelo extrator.
 # EDITAL simples aceita número com ou sem marcador; EDITAL qualificado exige
-# Nº/N°/N.º, usa até oito tokens e não atravessa pontuação.
+# Nº/N°/N.º (ou OCR "NO" com ano), usa até oito tokens e não atravessa pontuação.
 ACT_MARKER_RE = re.compile(
     r"(?<!\w)(?:"
     r"(?:DECRETO(?:\s*[-–—]\s*|\s+)LEI|PROJETO\s+DE\s+LEI|"
     r"MEDIDA\s+PROVISÓRIA|INSTRUÇÃO\s+NORMATIVA|ORDEM\s+DE\s+SERVIÇO|"
     r"EMENDA|VETO|MENSAGEM|LEI|PORTARIA|DECRETO|RESOLUÇÃO|ATO|DESPACHO|AVISO)"
-    r"\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
-    r"|EDITAL\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
-    r"|EDITAL(?:\s+[\wªº°-]+){1,8}\s+(?:[-–—]\s*)?N(?:\s*\.\s*)?[º°O]?\s*\d"
+    r"\s+" + ACT_NUMBER_RE +
+    r"|EDITAL\s+" + ACT_NUMBER_RE +
+    r"|EDITAL(?:\s+[\wªº°-]+){1,8}"
+    r"(?:\s+(?:[-–—]\s*)?|[-–—]\s*)" + ACT_NUMBER_RE +
     r")",
     flags=re.I | re.U,
 )
