@@ -4,7 +4,67 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from text_utils import normalize
+from text_utils import clean_text, normalize
+
+
+# Marcador interno removido por act_extraction.extract_matched_act antes de os
+# termos correspondentes serem persistidos no FeedItem.
+ACT_MATCH_SENTINEL = "\x00RSR_ACT\x00"
+
+# A regra same_act reconhece os mesmos limites editoriais básicos usados pelo
+# extrator. Tipos compostos vêm primeiro; o marcador aceita Nº, N° e N.º.
+ACT_MARKER_RE = re.compile(
+    r"(?<!\w)(?:DECRETO(?:\s*[-–—]\s*|\s+)LEI|PROJETO\s+DE\s+LEI|"
+    r"MEDIDA\s+PROVISÓRIA|INSTRUÇÃO\s+NORMATIVA|ORDEM\s+DE\s+SERVIÇO|"
+    r"EMENDA|VETO|MENSAGEM|LEI|PORTARIA|EDITAL|DECRETO|RESOLUÇÃO|"
+    r"ATO|DESPACHO|AVISO)\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d",
+    flags=re.I | re.U,
+)
+ACT_CITATION_PREFIX_RE = re.compile(
+    r"(?:regid[oa]\s+pel[oa]|nos\s+termos\s+d[ao]|"
+    r"conforme\s+(?:[oa]|dispost[oa]\s+n[ao]|previst[oa]\s+n[ao])|"
+    r"em\s+conformidade\s+com\s+(?:[oa]|[oa]\s+dispost[oa]\s+n[ao])|"
+    r"de\s+acordo\s+com\s+(?:[oa]|[oa]\s+dispost[oa]\s+n[ao])|"
+    r"consoante\s+[oa]|em\s+observancia\s+(?:a|ao)|na\s+forma\s+d[ao]|"
+    r"nos\s+moldes\s+d[ao]|previst[oa]\s+n[ao]|de\s+que\s+trata\s+[oa]|"
+    r"referid[oa]\s+n[ao]|alterad[oa]\s+pel[oa]|com\s+fundamento\s+n[ao]|"
+    r"por\s+meio\s+d[ao]|pel[oa])\s*$",
+    flags=re.I,
+)
+
+
+def _act_markers(text: str) -> list[re.Match[str]]:
+    markers: list[re.Match[str]] = []
+    for marker in ACT_MARKER_RE.finditer(text):
+        if marker.start() == 0:
+            markers.append(marker)
+            continue
+        prefix = normalize(text[max(0, marker.start() - 160) : marker.start()]).strip()
+        if ACT_CITATION_PREFIX_RE.search(prefix):
+            continue
+        markers.append(marker)
+    return markers
+
+
+def _split_acts(text: str) -> list[str]:
+    """Divide uma página em atos prováveis, sem combinar atos adjacentes."""
+    clean = clean_text(text)
+    if not clean:
+        return []
+    markers = _act_markers(clean)
+    if not markers:
+        return [clean]
+
+    acts: list[str] = []
+    prefix = clean[: markers[0].start()].strip()
+    if prefix:
+        acts.append(prefix)
+    for index, marker in enumerate(markers):
+        end = markers[index + 1].start() if index + 1 < len(markers) else len(clean)
+        act = clean[marker.start() : end].strip()
+        if act:
+            acts.append(act)
+    return acts
 
 
 @dataclass(slots=True)
@@ -14,6 +74,7 @@ class Rule:
     sources: set[str]
     priority: int
     max_span_chars: int | None = None
+    same_act: bool = False
     any_phrases: list[str] = field(default_factory=list)
     unconditional_phrases: list[str] = field(default_factory=list)
     context_any: list[str] = field(default_factory=list)
@@ -30,6 +91,7 @@ class Rule:
             sources=set(data.get("sources", [])),
             priority=int(data.get("priority", 5)),
             max_span_chars=int(span) if span is not None else None,
+            same_act=bool(data.get("same_act", False)),
             any_phrases=list(data.get("any_phrases", [])),
             unconditional_phrases=list(data.get("unconditional_phrases", [])),
             context_any=list(data.get("context_any", [])),
@@ -95,9 +157,7 @@ class Rule:
             return None
         return best[0], best[2]
 
-    def match(self, source: str, text: str) -> list[str] | None:
-        if self.sources and source not in self.sources:
-            return None
+    def _match_one(self, text: str) -> list[str] | None:
         norm = normalize(text)
         if any(normalize(term).strip() in norm for term in self.exclude_phrases):
             return None
@@ -127,3 +187,19 @@ class Rule:
             matched.extend(regex_hits)
 
         return list(dict.fromkeys(matched)) if matched else None
+
+    def match(self, source: str, text: str) -> list[str] | None:
+        if self.sources and source not in self.sources:
+            return None
+
+        if not self.same_act:
+            return self._match_one(text)
+
+        # Exclusions, âncoras e distância são avaliadas dentro de cada ato. O ato
+        # selecionado segue como marcador interno para o extrator, que o remove
+        # antes de matched_terms ser persistido.
+        for act in _split_acts(text):
+            matched = self._match_one(act)
+            if matched:
+                return [ACT_MATCH_SENTINEL + act, *matched]
+        return None
