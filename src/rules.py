@@ -12,14 +12,16 @@ from text_utils import clean_text, normalize
 ACT_MATCH_SENTINEL = "\x00RSR_ACT\x00"
 
 # A regra same_act reconhece os mesmos limites editoriais usados pelo extrator.
-# EDITAL aceita qualificadores que aparecem em cabeçalhos reais.
+# EDITAL aceita uma família ampla de qualificadores antes do número, sem
+# atravessar pontuação ou mais de oito palavras do cabeçalho.
 ACT_MARKER_RE = re.compile(
-    r"(?<!\w)(?:DECRETO(?:\s*[-–—]\s*|\s+)LEI|PROJETO\s+DE\s+LEI|"
+    r"(?<!\w)(?:"
+    r"(?:DECRETO(?:\s*[-–—]\s*|\s+)LEI|PROJETO\s+DE\s+LEI|"
     r"MEDIDA\s+PROVISÓRIA|INSTRUÇÃO\s+NORMATIVA|ORDEM\s+DE\s+SERVIÇO|"
-    r"EMENDA|VETO|MENSAGEM|LEI|PORTARIA|"
-    r"EDITAL(?:\s+(?:DE\s+ABERTURA|NORMATIVO|DE\s+CONCURSO(?:\s+P[ÚU]BLICO)?))?|"
-    r"DECRETO|RESOLUÇÃO|ATO|DESPACHO|AVISO)\s+"
-    r"(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d",
+    r"EMENDA|VETO|MENSAGEM|LEI|PORTARIA|DECRETO|RESOLUÇÃO|ATO|DESPACHO|AVISO)"
+    r"\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
+    r"|EDITAL(?:\s+[^\s.;:]+){0,8}?\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
+    r")",
     flags=re.I | re.U,
 )
 ACT_CITATION_PREFIX_RE = re.compile(
