@@ -3,7 +3,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from rules import Rule
+from act_extraction import extract_matched_act
+from rules import ACT_MATCH_SENTINEL, Rule
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,10 +32,23 @@ def _atub_rule() -> Rule:
             "EXONERAR ocupante de cargo em comissão e designar Auditor de Atividades Urbanas "
             "para responder por unidade administrativa."
         ),
+        (
+            "Designar João, Auditor Fiscal de Atividades Urbanas, para conduzir o certame "
+            "licitatório e publicar seu resultado."
+        ),
     ],
 )
 def test_atub_rule_rejects_career_mentions_without_contest_anchor(text: str):
     assert _atub_rule().match("dodf", text) is None
+
+
+def test_atub_rule_does_not_combine_adjacent_acts():
+    page = (
+        "EDITAL Nº 9/2026. Torna público concurso público para o cargo de Analista. "
+        "PORTARIA Nº 12/2026. NOMEAR João, Auditor Fiscal de Atividades Urbanas, "
+        "para exercer cargo em comissão."
+    )
+    assert _atub_rule().match("dodf", page) is None
 
 
 @pytest.mark.parametrize(
@@ -45,6 +59,14 @@ def test_atub_rule_rejects_career_mentions_without_contest_anchor(text: str):
             "Fiscal de Atividades Urbanas, observada a ordem de classificação."
         ),
         (
+            "NOMEAR Maria, candidata aprovada e classificada, para o cargo de Auditor "
+            "Fiscal de Atividades Urbanas."
+        ),
+        (
+            "NOMEAR Ana e Beatriz, candidatas aprovadas, para o cargo de Auditor Fiscal "
+            "de Atividades Urbanas."
+        ),
+        (
             "PRORROGAR por dois anos a validade do concurso público para Auditor Fiscal de "
             "Atividades Urbanas."
         ),
@@ -53,14 +75,49 @@ def test_atub_rule_rejects_career_mentions_without_contest_anchor(text: str):
             "para matrícula no curso de formação."
         ),
         (
-            "Publica o resultado final do concurso para Auditor de Atividades Urbanas e a "
-            "classificação dos candidatos."
+            "Torna público o resultado definitivo da prova discursiva para o cargo de "
+            "Auditor Fiscal de Atividades Urbanas."
         ),
-        "Retificação do Edital nº 01/2022 da carreira Auditoria de Atividades Urbanas.",
+        (
+            "Homologa o resultado final para o cargo de Auditor Fiscal de Atividades "
+            "Urbanas."
+        ),
+        (
+            "TORNAR SEM EFEITO, em virtude de desistência expressa, a nomeação de João "
+            "para o cargo de Auditor Fiscal de Atividades Urbanas."
+        ),
+        (
+            "Reposicionar Maria para o final da lista de classificação do concurso para "
+            "o cargo de Auditor Fiscal de Atividades Urbanas."
+        ),
+        (
+            "Retifica o Edital Normativo nº 03/2027 para o cargo de Auditor Fiscal de "
+            "Atividades Urbanas."
+        ),
+        "Retificação do Edital n.º 01/2022 da carreira Auditoria de Atividades Urbanas.",
+        "Retificação do Edital nº 1/2022 da carreira Auditoria de Atividades Urbanas.",
     ],
 )
 def test_atub_rule_accepts_explicit_contest_acts(text: str):
     assert _atub_rule().match("dodf", text) is not None
+
+
+def test_same_act_match_guides_extraction_and_cleans_internal_marker():
+    page = (
+        "PORTARIA Nº 10/2027. Designar João, Auditor Fiscal de Atividades Urbanas, "
+        "para comissão administrativa. "
+        "EDITAL N.º 03/2027. Retifica o Edital Normativo para o cargo de Auditor Fiscal "
+        "de Atividades Urbanas, destinado ao provimento de vagas."
+    )
+    matched = _atub_rule().match("dodf", page)
+    assert matched is not None
+    assert matched[0].startswith(ACT_MATCH_SENTINEL)
+
+    evidence = extract_matched_act(page, matched)
+
+    assert evidence.startswith("EDITAL N.º 03/2027")
+    assert "PORTARIA Nº 10/2027" not in evidence
+    assert all(not term.startswith(ACT_MATCH_SENTINEL) for term in matched)
 
 
 def test_atub_rule_remains_dodf_only():
