@@ -57,3 +57,59 @@ def test_partial_pdf_failure_does_not_open_primary_circuit(monkeypatch):
     assert collector.collect(date(2026, 7, 27)) == []
     assert collector.primary_circuit_open is False
     assert collector.fallback_reason == "endpoint primário sem documentos"
+
+
+def test_page_extraction_failure_does_not_skip_later_valid_pdf(monkeypatch):
+    collector = ResilientDodfCollector(
+        FakeClient(),
+        "https://www.dodf.df.gov.br/dodf/jornal/diario",
+    )
+    pdf_urls = [
+        "https://dodf.df.gov.br/dodf/jornal/visualizar-pdf?arquivo=DODF+136-A.pdf",
+        "https://dodf.df.gov.br/dodf/jornal/visualizar-pdf?arquivo=DODF+136-B.pdf",
+    ]
+    monkeypatch.setattr(collector, "list_pdf_urls", lambda _day: pdf_urls)
+
+    class Response:
+        content = b"%PDF-test"
+
+    monkeypatch.setattr(collector.client, "get", lambda *_args, **_kwargs: Response())
+
+    class BrokenPage:
+        def get_text(self, _mode):
+            raise RuntimeError("página malformada")
+
+    class ValidPage:
+        def get_text(self, _mode):
+            return "PORTARIA Nº 10. Conteúdo válido do segundo PDF."
+
+    class FakePdf:
+        def __init__(self, pages):
+            self.pages = pages
+
+        def __iter__(self):
+            return iter(self.pages)
+
+        def close(self):
+            return None
+
+    opened = 0
+
+    def open_pdf(*_args, **_kwargs):
+        nonlocal opened
+        opened += 1
+        if opened == 1:
+            return FakePdf([BrokenPage()])
+        return FakePdf([ValidPage()])
+
+    monkeypatch.setattr(dodf_resilient.fitz, "open", open_pdf)
+    collector._collect_sinj = lambda _day: (_ for _ in ()).throw(
+        AssertionError("fallback não deveria ser necessário")
+    )
+
+    documents = collector.collect(date(2026, 7, 27))
+
+    assert opened == 2
+    assert len(documents) == 1
+    assert documents[0].url.endswith("DODF+136-B.pdf#page=1")
+    assert collector.primary_circuit_open is False
