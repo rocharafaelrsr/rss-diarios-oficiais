@@ -8,6 +8,7 @@ from presentation import (
     _compact,
     _minimum_term_window,
 )
+from rules import ACT_MATCH_SENTINEL
 from text_utils import clean_text, normalize
 
 # Tipos compostos devem vir antes de LEI/DECRETO para que o início do ato não
@@ -17,7 +18,7 @@ ACT_MARKER_RE = re.compile(
     r"(?<!\w)(?:DECRETO(?:\s*[-–—]\s*|\s+)LEI|PROJETO\s+DE\s+LEI|"
     r"MEDIDA\s+PROVISÓRIA|INSTRUÇÃO\s+NORMATIVA|ORDEM\s+DE\s+SERVIÇO|"
     r"EMENDA|VETO|MENSAGEM|LEI|PORTARIA|EDITAL|DECRETO|RESOLUÇÃO|"
-    r"ATO|DESPACHO|AVISO)\s+(?:N[º°O]?\s*)?\d",
+    r"ATO|DESPACHO|AVISO)\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d",
     flags=re.I | re.U,
 )
 
@@ -38,6 +39,14 @@ def _act_markers(text: str) -> list[re.Match[str]]:
 
 def extract_matched_act(text: str, matched_terms: list[str]) -> str:
     """Recorta o ato correspondente sem perder cabeçalhos compostos."""
+    # Regras com same_act já selecionaram o ato exato. O marcador é transitório:
+    # removê-lo da lista impede que o conteúdo inteiro seja salvo em matched_terms.
+    for index, term in enumerate(list(matched_terms)):
+        if term.startswith(ACT_MATCH_SENTINEL):
+            act = clean_text(term[len(ACT_MATCH_SENTINEL) :])
+            del matched_terms[index]
+            return _compact(act, MAX_EVIDENCE)
+
     clean = clean_text(text)
     if not clean:
         return ""
