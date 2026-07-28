@@ -139,7 +139,7 @@ class ResilientDodfCollector(DodfCollector):
             finally:
                 pdf.close()
 
-        if pdf_urls and not documents and failures:
+        if pdf_urls and len(failures) == len(pdf_urls):
             raise PrimaryPdfFailure(
                 f"todos os {len(pdf_urls)} PDFs primários falharam; "
                 f"primeiro erro: {failures[0]}"
