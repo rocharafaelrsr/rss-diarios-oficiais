@@ -41,6 +41,8 @@ jobs:
         run: pytest -q
 
       - name: Coletar DODF e gerar feeds
+        env:
+          RSS_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         run: python src/main_dodf.py
 
       - name: Validar XMLs
@@ -60,24 +62,36 @@ jobs:
 
       - name: Publicar estado do DODF
         if: always()
+        env:
+          RSS_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         run: bash .github/scripts/publicar_estado.sh dodf
 
       - name: Resumir diagnóstico do DODF
         if: always()
+        env:
+          RSS_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           python - <<'PY'
           import json
           import os
           from pathlib import Path
 
+          from main_dodf import invalid_collection, status_belongs_to_run
+
           path = Path('docs/status-dodf.json')
+          run_id = os.environ.get('RSS_RUN_ID', '')
           if not path.exists():
-              print('status-dodf.json não foi produzido.')
+              print('status-dodf.json não foi produzido nesta execução.')
               raise SystemExit(0)
 
           status = json.loads(path.read_text(encoding='utf-8'))
+          if not status_belongs_to_run(status, run_id):
+              print('O status disponível pertence a outra execução; diagnóstico anterior não será reutilizado.')
+              raise SystemExit(0)
+
           source = status.get('sources', {}).get('dodf', {})
           errors = status.get('errors', [])
+          invalid = invalid_collection(status)
           summary = [
               '## Diagnóstico da coleta do DODF',
               '',
@@ -88,8 +102,9 @@ jobs:
           ]
           if errors:
               message = str(errors[-1].get('error', 'Falha não detalhada'))
-              summary.extend(['', f'- Diagnóstico: {message}'])
-              print(f'::notice title=DODF sem coleta válida::{message}')
+              summary.extend(['', f'- Última ocorrência: {message}'])
+              if invalid:
+                  print(f'::notice title=DODF sem coleta válida::{message}')
 
           summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
           if summary_path:
