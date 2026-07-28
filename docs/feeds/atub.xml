@@ -5,8 +5,32 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/atub.xml</link>
     <description>Atos relativos à carreira Auditoria de Atividades Urbanas e seus concursos.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Tue, 28 Jul 2026 09:20:14 -0300</lastBuildDate>
+    <lastBuildDate>Tue, 28 Jul 2026 09:52:10 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
+    <item>
+      <title>[DODF] Publica ato relativo ao concurso ATUB</title>
+      <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=bd33692a-3435-3766-84f2-33fbd737ffc5#page=50</link>
+      <guid isPermaLink="false">56d390c1d82d2575af5ade86f4d4fc03294a7204d19ef4331b7cbc72d3a8208c</guid>
+      <pubDate>Mon, 27 Jul 2026 06:00:00 -0300</pubDate>
+      <category>Concurso ATUB</category>
+      <description>4º Estabelecer o prazo de 30 (trinta) dias para a conclusão dos trabalhos da referida Comissão, podendo esse prazo ser prorrogado por igual período</description>
+    </item>
+    <item>
+      <title>[DODF] Publica ato relativo ao concurso ATUB</title>
+      <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=bd33692a-3435-3766-84f2-33fbd737ffc5#page=51</link>
+      <guid isPermaLink="false">079cfa500c109d01044ddb09e686dc1f06acf8dca6926a864e08d84a0167e390</guid>
+      <pubDate>Mon, 27 Jul 2026 06:00:00 -0300</pubDate>
+      <category>Concurso ATUB</category>
+      <description>4º Estabelecer o prazo de 30 (trinta) dias para a conclusão dos trabalhos da referida Comissão, podendo esse prazo ser prorrogado por igual período</description>
+    </item>
+    <item>
+      <title>[DODF] Nomeia aprovados no concurso ATUB</title>
+      <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=3d504202-6558-33c2-a4d4-c1cda1a32c66#page=10</link>
+      <guid isPermaLink="false">0456afef5e24efb3824e97e82d4da2df86b776c62bd8e7b76fb1ad6fd13a2628</guid>
+      <pubDate>Fri, 24 Jul 2026 06:00:00 -0300</pubDate>
+      <category>Concurso ATUB</category>
+      <description>NOMEAR GERALDO LORENÇO DE ALMEIDA para exercer o Cargo de Natureza Especial, Símbolo CDA-01, SIGRH 37000001, de Diretor-Presidente, do Instituto de Previdência dos Servidores do Distrito Federal - Iprev/DF</description>
+    </item>
   </channel>
 </rss>
