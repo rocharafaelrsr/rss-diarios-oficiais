@@ -15,9 +15,6 @@ ACT_TYPE_PATTERN = (
     r"lei|portaria|edital|decreto|resolucao|ato|despacho|aviso"
 )
 
-# A expressão roda sobre texto normalizado. Qualificadores precisam começar por
-# letra, para que o número não seja consumido quando o backend omite “Nº”. Os
-# tokens N/NO ficam reservados ao marcador numérico opcional.
 ACT_REFERENCE_RE = re.compile(
     rf"\b(?P<kind>{ACT_TYPE_PATTERN})\b"
     r"(?P<qualifier>(?:\s+(?!n(?:o)?(?:\b|[º°]))[a-z][a-z0-9./-]*){0,8})"
@@ -26,8 +23,11 @@ ACT_REFERENCE_RE = re.compile(
     flags=re.I,
 )
 SEMANTIC_PREFIX_RE = re.compile(r"^\[(?:DOU|DODF)\]\s*", flags=re.I)
+YEAR_INTRODUCERS = {
+    "de", "do", "da", "dos", "das", "para", "em", "ano", "exercicio",
+    "referente", "relativo", "relativa", "relativos", "relativas",
+}
 
-# Termos estruturais não distinguem dois atos de órgãos/objetos diferentes.
 REFERENCE_NOISE = {
     "a", "ao", "aos", "as", "com", "da", "das", "de", "do", "dos", "e", "em",
     "na", "nas", "no", "nos", "o", "os", "para", "por", "que", "se", "um", "uma",
@@ -80,8 +80,6 @@ def _canonical_act_number(value: str) -> str:
     if not groups:
         return ""
 
-    # 001/2026, 1-2026 e 01 / 2026 são a mesma referência. Pontos sem
-    # ano final são tratados como separadores de milhar: 15.300 == 15300.
     if len(groups) >= 2 and len(groups[-1]) == 4 and 1900 <= int(groups[-1]) <= 2199:
         main = int("".join(groups[:-1]))
         base = f"{main}/{int(groups[-1])}"
@@ -102,19 +100,16 @@ def _canonical_act_match(match: re.Match[str]) -> str:
 
 
 def _valid_reference_match(match: re.Match[str], normalized: str) -> bool:
-    """Evita interpretar datas redacionais como número de ato sem marcador.
-
-    “PORTARIA 100” é válido, mas “lei de 2026” não deve virar LEI:DE:2026.
-    Quando não existe N/Nº, rejeitamos o padrão em que o qualificador termina em
-    preposição e o número é um ano isolado.
-    """
+    """Rejeita anos redacionais quando o número do ato não tem marcador N/Nº."""
     if match.group("marker"):
         return True
+
     qualifier = _slug(match.group("qualifier"))
     number = _canonical_act_number(match.group("number"))
-    if qualifier.split("-")[-1:] in (["de"], ["do"], ["da"]):
-        if re.fullmatch(r"20\d{2}", number):
-            return False
+    qualifier_tokens = qualifier.split("-") if qualifier else []
+    is_year = bool(re.fullmatch(r"(?:18|19|20|21)\d{2}", number))
+    if is_year and qualifier_tokens and qualifier_tokens[-1] in YEAR_INTRODUCERS:
+        return False
     return True
 
 
@@ -132,7 +127,6 @@ def _act_reference(title: str, evidence: str) -> str:
     """Extrai e canoniza a identificação normativa compartilhada pelos backends."""
     candidates = [clean_text(evidence), clean_text(title)]
 
-    # Primeiro procura no cabeçalho, antes de citações legais posteriores.
     for candidate in candidates:
         reference = _find_reference(normalize(candidate).strip()[:420])
         if reference:
@@ -146,7 +140,6 @@ def _act_reference(title: str, evidence: str) -> str:
 
 
 def _discriminating_tokens(title: str, evidence: str) -> frozenset[str]:
-    """Extrai nomes/objetos que diferenciam atos com a mesma numeração."""
     semantic_title = _canonical_semantic_title(title)
     normalized = normalize(f"{semantic_title} {evidence}").strip()
     normalized = ACT_REFERENCE_RE.sub(" ", normalized)
@@ -165,12 +158,6 @@ def reduced_reference_compatible(
     right_title: str,
     right_evidence: str,
 ) -> bool:
-    """Exige conteúdo discriminante compatível antes de substituir outro card.
-
-    A mesma referência normativa nunca é suficiente sozinha: PORTARIA Nº 1 pode
-    existir em vários órgãos, inclusive na mesma página. Sem nomes ou objetos
-    coincidentes, o merge preserva os dois registros.
-    """
     left = _discriminating_tokens(left_title, left_evidence)
     right = _discriminating_tokens(right_title, right_evidence)
     if not left or not right:
@@ -180,7 +167,6 @@ def reduced_reference_compatible(
 
 
 def metadata_is_complete(*, source: str, edition: str, section: str, page: int | None) -> bool:
-    """Indica se os metadados necessários estão presentes para comparação estrita."""
     source_norm = normalize(source).strip()
     if source_norm == "dou":
         return bool(clean_text(edition) and clean_text(section) and page is not None)
@@ -195,7 +181,6 @@ def backend_reference_key(
     title: str,
     evidence: str,
 ) -> str:
-    """Chave normativa candidata quando um backend omite metadados editoriais."""
     return sha256_text(
         normalize(source).strip(),
         normalize(category).strip(),
@@ -215,7 +200,6 @@ def backend_recollection_key(
     title: str,
     evidence: str,
 ) -> str:
-    """Chave editorial candidata; o merge ainda exige conteúdo compatível."""
     return sha256_text(
         normalize(source).strip(),
         normalize(category).strip(),
@@ -235,12 +219,13 @@ def url_recollection_key(
     link: str,
     page: int | None,
 ) -> str:
-    """Alias para garantir substituição após correções de extração no mesmo link."""
+    """Alias estável do mesmo artigo; página corrigida não altera a identidade."""
+    del page
     parsed = urlsplit(link)
     canonical_link = urlunsplit(
         (parsed.scheme.casefold(), parsed.netloc.casefold(), parsed.path, parsed.query, "")
     )
-    return sha256_text(source, category, published_at[:10], canonical_link, page or "")
+    return sha256_text(source, category, published_at[:10], canonical_link)
 
 
 def legacy_semantic_key(
@@ -253,7 +238,7 @@ def legacy_semantic_key(
     page: int | None,
     title: str,
 ) -> str:
-    """Alias limitado à migração de cards antigos que não guardavam evidência."""
+    """Mantida apenas para leitura/migração externa; não autoriza substituição sozinha."""
     return sha256_text(
         normalize(source).strip(),
         normalize(category).strip(),

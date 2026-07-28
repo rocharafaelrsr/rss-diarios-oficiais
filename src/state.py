@@ -9,7 +9,6 @@ from models import FeedItem
 from recollection import (
     backend_recollection_key,
     backend_reference_key,
-    legacy_semantic_key,
     metadata_is_complete,
     reduced_reference_compatible,
     url_recollection_key,
@@ -75,18 +74,6 @@ def _refresh_recollection_key(item: FeedItem) -> str:
     return key
 
 
-def _legacy_key(item: FeedItem) -> str:
-    return legacy_semantic_key(
-        source=item.source,
-        category=item.category,
-        published_at=item.published_at,
-        edition=item.edition,
-        section=item.section,
-        page=item.page,
-        title=item.title,
-    )
-
-
 def _compatible_candidate(item: FeedItem, candidates: list[FeedItem]) -> bool:
     return any(
         reduced_reference_compatible(
@@ -109,7 +96,6 @@ def merge_items(
     cutoff = now - timedelta(days=retention_days)
 
     new_url_keys = {_url_key(item) for item in new}
-    new_legacy_keys = {_legacy_key(item) for item in new}
 
     new_by_full: dict[str, list[FeedItem]] = defaultdict(list)
     new_by_reference: dict[str, list[FeedItem]] = defaultdict(list)
@@ -123,11 +109,11 @@ def merge_items(
             new_incomplete_by_reference[reference_key].append(item)
 
     # Ordem de decisão:
-    # 1. Mesmo URL oficial: substitui, inclusive após correção de extração.
-    # 2. Mesma chave editorial completa: ainda exige conteúdo discriminante
-    #    compatível, pois tipo/número/página não identificam globalmente o órgão.
-    # 3. Metadados incompletos: exige a mesma referência normativa e a mesma
-    #    compatibilidade de conteúdo.
+    # 1. Mesmo URL oficial: substitui, inclusive se página/evidência foram corrigidas.
+    # 2. Mesma chave editorial completa: exige conteúdo discriminante compatível.
+    # 3. Metadados incompletos: exige referência normativa e conteúdo compatível.
+    # Cards legados sem evidência não são removidos por título genérico; precisam
+    # coincidir por URL ou por outro sinal já comprovado nas etapas anteriores.
     old_kept: list[FeedItem] = []
     for item in old:
         current_key = _refresh_recollection_key(item)
@@ -144,8 +130,6 @@ def merge_items(
                 else new_incomplete_by_reference.get(reference_key, [])
             )
             replaced = _compatible_candidate(item, candidates)
-        if not replaced and not item.evidence:
-            replaced = _legacy_key(item) in new_legacy_keys
         if not replaced:
             old_kept.append(item)
 

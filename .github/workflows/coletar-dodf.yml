@@ -43,7 +43,7 @@ jobs:
       - name: Coletar DODF e gerar feeds
         id: coleta
         continue-on-error: true
-        run: python src/main.py --source dodf
+        run: python src/main_dodf.py
 
       - name: Validar XMLs
         if: always()
