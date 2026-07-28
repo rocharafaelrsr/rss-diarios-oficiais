@@ -109,10 +109,6 @@ rules:
       - "edital para provimento"
       - "retifica o edital"
       - "retificação do edital"
-      - "desistência da nomeação"
-      - "desistência expressa"
-      - "tornar sem efeito a nomeação"
-      - "torna sem efeito a nomeação"
       - "reposicionar para o final da lista"
       - "reposicionamento para o final da lista"
       - "final da lista de classificação"
@@ -125,6 +121,9 @@ rules:
       - "edital n° 1/2022"
       - "edital n.º 1/2022"
       - "edital 1/2022"
+    context_regex:
+      - '\b(?:tornar|torna)\s+sem\s+efeito\b[^.;]{0,280}\bnomea(?:cao|r)\b[^.;]{0,360}\b(?:para|no)\s+(?:o\s+)?cargo(?:\s+efetivo)?\s+(?:de\s+)?(?:auditor(?:a)?\s+fiscal\s+de\s+atividades\s+urbanas|auditor(?:a)?\s+de\s+atividades\s+urbanas|carreira\s+auditoria\s+de\s+atividades\s+urbanas)\b'
+      - '\bdesistencia(?:\s+expressa)?\b[^.;]{0,280}\bnomea(?:cao|r)\b[^.;]{0,360}\b(?:para|no)\s+(?:o\s+)?cargo(?:\s+efetivo)?\s+(?:de\s+)?(?:auditor(?:a)?\s+fiscal\s+de\s+atividades\s+urbanas|auditor(?:a)?\s+de\s+atividades\s+urbanas|carreira\s+auditoria\s+de\s+atividades\s+urbanas)\b'
     unconditional_phrases:
       - "edital nº 01/2022"
       - "edital n° 01/2022"
