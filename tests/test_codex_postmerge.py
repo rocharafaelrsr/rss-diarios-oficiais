@@ -98,6 +98,22 @@ def test_same_url_replaces_card_when_page_and_evidence_are_corrected():
     )
 
 
+def test_dodf_pdf_pages_keep_distinct_url_aliases():
+    common = {
+        "source": "dodf",
+        "category": "atub",
+        "published_at": "2026-07-27T06:00:00-03:00",
+    }
+    pdf = "https://dodf.df.gov.br/dodf/jornal/visualizar-pdf?arquivo=DODF+135.pdf"
+
+    page_10 = url_recollection_key(**common, link=f"{pdf}#page=10", page=10)
+    page_11 = url_recollection_key(**common, link=f"{pdf}#page=11", page=11)
+    page_10_without_fragment = url_recollection_key(**common, link=pdf, page=10)
+
+    assert page_10 != page_11
+    assert page_10 == page_10_without_fragment
+
+
 def test_unnumbered_year_phrases_are_not_act_references():
     title = "[DOU] Altera diretrizes orçamentárias"
 

@@ -219,13 +219,25 @@ def url_recollection_key(
     link: str,
     page: int | None,
 ) -> str:
-    """Alias estável do mesmo artigo; página corrigida não altera a identidade."""
-    del page
+    """Alias do artigo; páginas do DODF permanecem identidades distintas."""
+    source_norm = normalize(source).strip()
+    category_norm = normalize(category).strip()
     parsed = urlsplit(link)
     canonical_link = urlunsplit(
         (parsed.scheme.casefold(), parsed.netloc.casefold(), parsed.path, parsed.query, "")
     )
-    return sha256_text(source, category, published_at[:10], canonical_link)
+    if source_norm == "dodf":
+        page_identity = parsed.fragment.casefold().strip()
+        if not page_identity and page is not None:
+            page_identity = f"page={page}"
+        return sha256_text(
+            source_norm,
+            category_norm,
+            published_at[:10],
+            canonical_link,
+            page_identity,
+        )
+    return sha256_text(source_norm, category_norm, published_at[:10], canonical_link)
 
 
 def legacy_semantic_key(

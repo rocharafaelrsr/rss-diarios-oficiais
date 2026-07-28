@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -39,6 +40,24 @@ def dodf_business_day_health(
     }
 
 
+def status_belongs_to_run(status: dict[str, Any], run_id: str) -> bool:
+    """Impede que o workflow apresente o status rastreado de uma execução anterior."""
+    return bool(run_id) and str(status.get("run_id", "")) == run_id
+
+
+def invalid_collection(status: dict[str, Any]) -> bool:
+    """Só classifica como inválida a execução sem documentos e sem atualização."""
+    source = status.get("sources", {}).get("dodf", {})
+    return int(source.get("documents") or 0) == 0 and status.get("state_updated") is False
+
+
+def _write_status(root: Path, status: dict[str, Any]) -> None:
+    (root / "docs/status-dodf.json").write_text(
+        json.dumps(status, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Coleta DODF e gera feeds RSS 2.0")
     parser.add_argument("--config", default="config/monitors.yml")
@@ -59,17 +78,42 @@ def main() -> int:
     today = date.fromisoformat(args.date) if args.date else datetime.now(BRT).date()
     next_year = today.year + 1
     now = datetime.now(BRT)
+    run_id = os.getenv("RSS_RUN_ID", "")
     lookback = args.lookback if args.lookback is not None else int(project.get("lookback_days", 3))
     days = days_to_collect(today, lookback)
 
     status: dict[str, Any] = {
+        "run_id": run_id,
         "started_at": now.isoformat(),
         "reference_date": today.isoformat(),
         "sources": {},
         "errors": [],
     }
-    documents = []
 
+    if not dodf_cfg.get("enabled", True):
+        status["sources"]["dodf"] = {
+            "enabled": False,
+            "documents": 0,
+            "backend": None,
+            "healthy": True,
+            "business_days_checked": [],
+            "business_days_with_documents": [],
+        }
+        status.update(
+            {
+                "finished_at": datetime.now(BRT).isoformat(),
+                "documents_examined": 0,
+                "new_matches": 0,
+                "stored_items": len(load_items(root / "data/items.json")),
+                "items_removed_out_of_scope": 0,
+                "state_updated": False,
+            }
+        )
+        _write_status(root, status)
+        LOG.info("DODF desativado na configuração; nenhuma coleta executada")
+        return 0
+
+    documents = []
     client = HttpClient(
         timeout=int(project.get("request_timeout_seconds", 35)),
         user_agent=str(project["user_agent"]),
@@ -92,9 +136,10 @@ def main() -> int:
             status["errors"].append(
                 {"source": "dodf", "date": day.isoformat(), "error": str(exc)[:500]}
             )
-            if isinstance(exc, (requests.RequestException, ConnectionError, RuntimeError)):
-                LOG.warning("DODF: fallback indisponível; datas restantes ficam para a próxima execução")
-                break
+            # Cada consulta ao SINJ é específica da data. Mesmo com o circuito
+            # primário aberto, uma falha de fallback hoje não prova que as datas
+            # anteriores também falharão; seguimos por toda a janela.
+            LOG.warning("DODF: falha limitada à data %s; seguindo para a próxima data", day)
 
     health = dodf_business_day_health(days, day_counts)
     required_failure = False
@@ -110,6 +155,7 @@ def main() -> int:
         LOG.error("DODF: %s", message)
 
     status["sources"]["dodf"] = {
+        "enabled": True,
         "documents": len(documents),
         "backend": collector.backend,
         "fallback_reason": collector.fallback_reason or None,
@@ -171,10 +217,7 @@ def main() -> int:
             "state_updated": state_updated,
         }
     )
-    (root / "docs/status-dodf.json").write_text(
-        json.dumps(status, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    _write_status(root, status)
 
     LOG.info(
         "Concluído: %d documentos, %d correspondências novas, %d itens armazenados, %d removidos do escopo",
