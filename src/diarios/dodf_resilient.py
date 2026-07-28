@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import io
 import logging
-from datetime import date
+from datetime import date, datetime, time
 from urllib.parse import urljoin, urlparse
 
+import fitz
 import requests
 from bs4 import BeautifulSoup
 
-from diarios.dodf import DodfCollector, OFFICIAL_HOSTS
+from diarios.dodf import BRT, DodfCollector, OFFICIAL_HOSTS
 from models import Document
+from text_utils import clean_text
 
 LOG = logging.getLogger(__name__)
 
@@ -17,15 +20,12 @@ class PrimaryCircuitOpen(ConnectionError):
     pass
 
 
-class ResilientDodfCollector(DodfCollector):
-    """DODF com tentativa primária curta e circuito aberto por execução.
+class PrimaryPdfFailure(ConnectionError):
+    pass
 
-    O portal `dodf.df.gov.br` frequentemente não aceita conexões dos runners do
-    GitHub. Depois da primeira falha de conexão, repetir os mesmos timeouts para
-    cada data não acrescenta cobertura: as datas seguintes seguem diretamente
-    para o SINJ. Fins de semana também consultam somente o SINJ, preservando a
-    possibilidade de edição extraordinária sem testar um endpoint diário vazio.
-    """
+
+class ResilientDodfCollector(DodfCollector):
+    """DODF com tentativa primária curta e circuito aberto por execução."""
 
     def __init__(
         self,
@@ -51,6 +51,7 @@ class ResilientDodfCollector(DodfCollector):
             raise PrimaryCircuitOpen(self.primary_circuit_reason or "circuito primário aberto")
 
         last_error: Exception | None = None
+        had_successful_response = False
         for daily_url in self._daily_candidates():
             self.primary_attempts += 1
             try:
@@ -62,6 +63,7 @@ class ResilientDodfCollector(DodfCollector):
                     allow_redirects=True,
                 )
                 response.raise_for_status()
+                had_successful_response = True
             except (requests.ConnectTimeout, requests.ConnectionError) as exc:
                 last_error = exc
                 LOG.warning(
@@ -93,9 +95,56 @@ class ResilientDodfCollector(DodfCollector):
                 return urls
             LOG.info("DODF %s: endpoint primário respondeu sem PDFs", day.isoformat())
 
+        # Uma resposta HTTP válida, ainda que sem PDFs, torna obsoleto qualquer
+        # erro de candidato anterior. Não abrimos circuito com erro stale.
+        if had_successful_response:
+            return []
         if last_error is not None:
             raise last_error
         return []
+
+    def _collect_primary(self, day: date) -> list[Document]:
+        """Baixa os PDFs e propaga falha total para que o circuito seja aberto."""
+        pdf_urls = self.list_pdf_urls(day)
+        documents: list[Document] = []
+        failures: list[Exception] = []
+
+        for pdf_url in pdf_urls:
+            edition = self._edition_from_url(pdf_url)
+            try:
+                response = self.client.get(pdf_url)
+                pdf = fitz.open(stream=io.BytesIO(response.content), filetype="pdf")
+            except Exception as exc:
+                failures.append(exc)
+                LOG.exception("Falha ao baixar/abrir PDF do DODF: %s", pdf_url)
+                continue
+
+            try:
+                for page_number, page in enumerate(pdf, start=1):
+                    text_value = clean_text(page.get_text("text"))
+                    if not text_value:
+                        continue
+                    documents.append(
+                        Document(
+                            source="dodf",
+                            source_label="Diário Oficial do Distrito Federal",
+                            title=f"{edition} — página {page_number}",
+                            url=f"{pdf_url}#page={page_number}",
+                            published_at=datetime.combine(day, time(hour=6), tzinfo=BRT),
+                            text=text_value,
+                            edition=edition,
+                            page=page_number,
+                        )
+                    )
+            finally:
+                pdf.close()
+
+        if pdf_urls and not documents and failures:
+            raise PrimaryPdfFailure(
+                f"todos os {len(pdf_urls)} PDFs primários falharam; "
+                f"primeiro erro: {failures[0]}"
+            )
+        return documents
 
     def _collect_fallback(self, day: date, reason: Exception | str) -> list[Document]:
         self.fallback_reason = str(reason)[:500]
