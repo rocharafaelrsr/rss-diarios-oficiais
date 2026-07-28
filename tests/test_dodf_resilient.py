@@ -90,6 +90,59 @@ def test_primary_listing_uses_one_fast_request_without_warmup(monkeypatch):
     assert collector.primary_attempts == 1
 
 
+def test_all_pdf_download_failures_open_primary_circuit(monkeypatch):
+    collector = ResilientDodfCollector(
+        FakeClient(),
+        "https://www.dodf.df.gov.br/dodf/jornal/diario",
+    )
+    monkeypatch.setattr(
+        collector,
+        "list_pdf_urls",
+        lambda _day: [
+            "https://dodf.df.gov.br/dodf/jornal/visualizar-pdf?arquivo=DODF+135.pdf"
+        ],
+    )
+    monkeypatch.setattr(
+        collector.client,
+        "get",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(requests.ConnectTimeout("pdf timeout")),
+    )
+    collector._collect_sinj = lambda _day: []
+
+    assert collector.collect(date(2026, 7, 27)) == []
+    assert collector.primary_circuit_open is True
+    assert "todos os 1 PDFs primários falharam" in collector.primary_circuit_reason
+
+
+def test_successful_empty_candidate_discards_stale_previous_error(monkeypatch):
+    calls = 0
+
+    class EmptyResponse:
+        url = "https://www.dodf.df.gov.br/dodf/jornal/diario?data=1"
+        text = "<html><body>Sem edição ainda</body></html>"
+
+        def raise_for_status(self):
+            return None
+
+    def mixed_result(_url, **_kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise requests.HTTPError("503 no primeiro alias")
+        return EmptyResponse()
+
+    monkeypatch.setattr(requests, "get", mixed_result)
+    collector = ResilientDodfCollector(
+        FakeClient(),
+        "https://www.dodf.df.gov.br/dodf/jornal/diario",
+    )
+    collector._collect_sinj = lambda _day: []
+
+    assert collector.collect(date(2026, 7, 27)) == []
+    assert calls == 2
+    assert collector.primary_circuit_open is False
+
+
 def test_business_day_health_rejects_all_zero_documents():
     days = [
         date(2026, 7, 27),
