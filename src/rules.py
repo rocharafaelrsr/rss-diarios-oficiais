@@ -21,7 +21,7 @@ ACT_MARKER_RE = re.compile(
     r"EMENDA|VETO|MENSAGEM|LEI|PORTARIA|DECRETO|RESOLUÇÃO|ATO|DESPACHO|AVISO)"
     r"\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
     r"|EDITAL\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
-    r"|EDITAL(?:\s+[\wªº°-]+){1,8}\s+N(?:\s*\.\s*)?[º°O]?\s*\d"
+    r"|EDITAL(?:\s+[\wªº°-]+){1,8}\s+(?:[-–—]\s*)?N(?:\s*\.\s*)?[º°O]?\s*\d"
     r")",
     flags=re.I | re.U,
 )
