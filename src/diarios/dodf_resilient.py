@@ -104,40 +104,44 @@ class ResilientDodfCollector(DodfCollector):
         return []
 
     def _collect_primary(self, day: date) -> list[Document]:
-        """Baixa os PDFs e propaga falha total para que o circuito seja aberto."""
+        """Baixa todos os PDFs e só propaga falha quando cada arquivo falhou."""
         pdf_urls = self.list_pdf_urls(day)
         documents: list[Document] = []
         failures: list[Exception] = []
 
         for pdf_url in pdf_urls:
             edition = self._edition_from_url(pdf_url)
+            per_pdf_documents: list[Document] = []
             try:
                 response = self.client.get(pdf_url)
                 pdf = fitz.open(stream=io.BytesIO(response.content), filetype="pdf")
+                try:
+                    for page_number, page in enumerate(pdf, start=1):
+                        text_value = clean_text(page.get_text("text"))
+                        if not text_value:
+                            continue
+                        per_pdf_documents.append(
+                            Document(
+                                source="dodf",
+                                source_label="Diário Oficial do Distrito Federal",
+                                title=f"{edition} — página {page_number}",
+                                url=f"{pdf_url}#page={page_number}",
+                                published_at=datetime.combine(day, time(hour=6), tzinfo=BRT),
+                                text=text_value,
+                                edition=edition,
+                                page=page_number,
+                            )
+                        )
+                finally:
+                    pdf.close()
             except Exception as exc:
                 failures.append(exc)
-                LOG.exception("Falha ao baixar/abrir PDF do DODF: %s", pdf_url)
+                LOG.exception("Falha ao baixar, abrir ou processar PDF do DODF: %s", pdf_url)
                 continue
 
-            try:
-                for page_number, page in enumerate(pdf, start=1):
-                    text_value = clean_text(page.get_text("text"))
-                    if not text_value:
-                        continue
-                    documents.append(
-                        Document(
-                            source="dodf",
-                            source_label="Diário Oficial do Distrito Federal",
-                            title=f"{edition} — página {page_number}",
-                            url=f"{pdf_url}#page={page_number}",
-                            published_at=datetime.combine(day, time(hour=6), tzinfo=BRT),
-                            text=text_value,
-                            edition=edition,
-                            page=page_number,
-                        )
-                    )
-            finally:
-                pdf.close()
+            # Só incorpora as páginas depois que leitura e fechamento terminam.
+            # Um PDF parcialmente processado e depois corrompido é tratado como falha.
+            documents.extend(per_pdf_documents)
 
         if pdf_urls and len(failures) == len(pdf_urls):
             raise PrimaryPdfFailure(
