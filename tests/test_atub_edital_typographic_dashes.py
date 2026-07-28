@@ -54,6 +54,9 @@ def test_editorial_dash_keeps_adjacent_acts_separate(
         "EDITAL DE CONVOCAÇÃO, destinado aos 50 primeiros colocados",
         "EDITAL DE RESULTADO: referente aos 30 candidatos classificados",
         "EDITAL DE RETIFICAÇÃO; alcançando os 20 candidatos remanescentes",
+        "EDITAL DE CONVOCAÇÃO 50 candidatos",
+        "EDITAL DE CONVOCAÇÃO no 50 candidatos",
+        "EDITAL DE CONVOCAÇÃO NO 50 candidatos",
         "EDITAL DE CONVOCAÇÃO — no 50º dia",
         "EDITAL DE CONVOCAÇÃO—no 50º dia",
         "EDITAL DE CONVOCAÇÃO — NO 50º DIA",
@@ -72,8 +75,36 @@ def test_portuguese_no_does_not_split_valid_atub_act():
     assert _atub_rule().match("dodf", page) is not None
 
 
-def test_uppercase_ocr_number_marker_remains_supported_with_year():
-    header = "EDITAL DE ABERTURA—NO 3/2027"
+@pytest.mark.parametrize(
+    "header",
+    [
+        "EDITAL DE ABERTURA—NO 3/2027",
+        "EDITAL DE ABERTURA—N.O 3/2027",
+        "EDITAL DE ABERTURA—N. O 3/2027",
+        "EDITAL DE ABERTURA—N O 3/2027",
+        "PORTARIA NO 2/2027",
+        "PORTARIA N.O 2/2027",
+        "PORTARIA N. O 2/2027",
+        "PORTARIA N O 2/2027",
+    ],
+)
+def test_uppercase_ocr_number_markers_remain_supported_with_year(header: str):
     marker = ACT_MARKER_RE.match(header)
     assert marker is not None
-    assert marker.group(0).endswith("3/2027")
+    assert "/2027" in marker.group(0)
+
+
+@pytest.mark.parametrize("ocr_marker", ["NO", "N.O", "N. O", "N O"])
+def test_ocr_portaria_keeps_adjacent_acts_separate(ocr_marker: str):
+    page = (
+        "EDITAL Nº 9/2026. Torna público concurso público para o cargo de Analista. "
+        f"PORTARIA {ocr_marker} 2/2027. Designar João, Auditor Fiscal de Atividades Urbanas, "
+        "para exercer cargo em comissão."
+    )
+    assert _atub_rule().match("dodf", page) is None
+
+
+def test_simple_edital_still_accepts_bare_number():
+    marker = ACT_MARKER_RE.match("EDITAL 3/2027")
+    assert marker is not None
+    assert marker.group(0).endswith("3")
