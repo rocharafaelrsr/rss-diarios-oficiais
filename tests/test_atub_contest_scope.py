@@ -5,7 +5,7 @@ import yaml
 
 from act_extraction import extract_matched_act
 from presentation import MAX_EVIDENCE, strictly_relevant
-from rules import ACT_MATCH_SENTINEL, Rule
+from rules import ACT_MARKER_RE, ACT_MATCH_SENTINEL, Rule
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -110,6 +110,45 @@ def test_cited_qualified_edital_remains_inside_containing_act():
     evidence = extract_matched_act(page, matched)
     assert evidence.startswith("PORTARIA Nº 21/2027")
     assert "objeto do EDITAL DE ABERTURA Nº 4/2027" in evidence
+
+
+@pytest.mark.parametrize("connector", ["em cumprimento ao", "em atendimento ao"])
+def test_cited_qualified_edital_with_execution_connector_stays_in_act(connector: str):
+    page = (
+        "PORTARIA Nº 22/2027. Convocar candidatas aprovadas no concurso público "
+        f"{connector} EDITAL DE CONVOCAÇÃO Nº 4/2027 para o cargo de Auditora Fiscal "
+        "de Atividades Urbanas."
+    )
+    matched = _atub_rule().match("dodf", page)
+    assert matched is not None
+    evidence = extract_matched_act(page, matched)
+    assert evidence.startswith("PORTARIA Nº 22/2027")
+    assert f"{connector} EDITAL DE CONVOCAÇÃO Nº 4/2027" in evidence
+
+
+@pytest.mark.parametrize(
+    "prose",
+    [
+        "EDITAL DE CONVOCAÇÃO, destinado aos 50 primeiros colocados",
+        "EDITAL DE RESULTADO: referente aos 30 candidatos classificados",
+        "EDITAL DE RETIFICAÇÃO; alcançando os 20 candidatos remanescentes",
+    ],
+)
+def test_qualified_edital_scan_stops_at_punctuation(prose: str):
+    assert ACT_MARKER_RE.search(prose) is None
+
+
+def test_punctuated_edital_reference_does_not_split_valid_atub_act():
+    page = (
+        "PORTARIA Nº 23/2027. Convocar candidatas aprovadas no concurso público conforme o "
+        "EDITAL DE CONVOCAÇÃO, destinado aos 50 primeiros colocados, para o cargo de "
+        "Auditora Fiscal de Atividades Urbanas."
+    )
+    matched = _atub_rule().match("dodf", page)
+    assert matched is not None
+    evidence = extract_matched_act(page, matched)
+    assert evidence.startswith("PORTARIA Nº 23/2027")
+    assert "destinado aos 50 primeiros colocados" in evidence
 
 
 @pytest.mark.parametrize(
