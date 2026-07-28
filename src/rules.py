@@ -12,15 +12,16 @@ from text_utils import clean_text, normalize
 ACT_MATCH_SENTINEL = "\x00RSR_ACT\x00"
 
 # A regra same_act reconhece os mesmos limites editoriais usados pelo extrator.
-# EDITAL aceita uma família ampla de qualificadores antes do número, sem
-# atravessar pontuação ou mais de oito palavras do cabeçalho.
+# EDITAL simples aceita número com ou sem marcador; EDITAL qualificado exige
+# Nº/N°/N.º, usa até oito tokens e não atravessa pontuação.
 ACT_MARKER_RE = re.compile(
     r"(?<!\w)(?:"
     r"(?:DECRETO(?:\s*[-–—]\s*|\s+)LEI|PROJETO\s+DE\s+LEI|"
     r"MEDIDA\s+PROVISÓRIA|INSTRUÇÃO\s+NORMATIVA|ORDEM\s+DE\s+SERVIÇO|"
     r"EMENDA|VETO|MENSAGEM|LEI|PORTARIA|DECRETO|RESOLUÇÃO|ATO|DESPACHO|AVISO)"
     r"\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
-    r"|EDITAL(?:\s+[^\s.;:]+){0,8}?\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
+    r"|EDITAL\s+(?:N(?:\s*\.\s*)?[º°O]?\s*)?\d"
+    r"|EDITAL(?:\s+[\wªº°-]+){1,8}\s+N(?:\s*\.\s*)?[º°O]?\s*\d"
     r")",
     flags=re.I | re.U,
 )
@@ -29,6 +30,7 @@ ACT_CITATION_PREFIX_RE = re.compile(
     r"conforme\s+(?:[oa]|dispost[oa]\s+n[ao]|previst[oa]\s+n[ao])|"
     r"em\s+conformidade\s+com\s+(?:[oa]|[oa]\s+dispost[oa]\s+n[ao])|"
     r"de\s+acordo\s+com\s+(?:[oa]|[oa]\s+dispost[oa]\s+n[ao])|"
+    r"em\s+cumprimento\s+a[oa]?|em\s+atendimento\s+a[oa]?|"
     r"consoante\s+[oa]|em\s+observancia\s+(?:a|ao)|na\s+forma\s+d[ao]|"
     r"nos\s+moldes\s+d[ao]|previst[oa]\s+n[ao]|de\s+que\s+trata\s+[oa]|"
     r"referid[oa]\s+n[ao]|alterad[oa]\s+pel[oa]|com\s+fundamento\s+n[ao]|"
