@@ -47,6 +47,16 @@ def test_atub_rule_rejects_career_mentions_without_contest_anchor(text: str):
     assert _atub_rule().match("dodf", text) is None
 
 
+def test_strict_relevance_alone_does_not_make_commission_revocation_relevant():
+    text = (
+        "TORNAR SEM EFEITO A NOMEAÇÃO de João, Auditor Fiscal de Atividades Urbanas, "
+        "para cargo em comissão de Diretor."
+    )
+    # A validação estrita legada reconhece palavras genéricas, mas a porta de
+    # entrada da classificação é a Rule ATUB, que deve bloquear este ato.
+    assert _atub_rule().match("dodf", text) is None
+
+
 def test_atub_rule_does_not_combine_adjacent_acts():
     page = (
         "EDITAL Nº 9/2026. Torna público concurso público para o cargo de Analista. "
