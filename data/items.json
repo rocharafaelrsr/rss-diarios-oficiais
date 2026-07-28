@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "guid": "2e77e513346fa66babfff1113513896e4e0a5d0476e31c9b9acff3120a1912d0",
+    "category": "atub",
+    "category_label": "Concurso ATUB",
+    "priority": 10,
+    "source": "dodf",
+    "source_label": "Diário Oficial do Distrito Federal",
+    "title": "[DODF] Publica edital do concurso ATUB",
+    "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=93785555-2059-3435-ace6-59756c7c6b3f#page=41",
+    "published_at": "2026-07-28T06:00:00-03:00",
+    "collected_at": "2026-07-28T13:11:06.762311-03:00",
+    "edition": "DODF (SINJ)",
+    "section": "",
+    "page": 41,
+    "excerpt": "Edital nº 17/2024 - ATUB, publicado no DODF nº 78-B, em 25 de outubro de 2024, referente ao Edital nº 01/2022 – ATUB, publicado no DODF nº 215, de 18 de novembro de 2022, para provimento de vagas e formação de cadastro de reserva para os cargos de Auditor de Atividades Urbanas e Auditor Fiscal de…",
+    "matched_terms": [
+      "edital nº 01/2022",
+      "edital n° 01/2022",
+      "edital n.º 01/2022",
+      "edital 01/2022",
+      "edital nº 1/2022",
+      "edital n° 1/2022",
+      "edital n.º 1/2022",
+      "edital 1/2022"
+    ],
+    "evidence": "Edital nº 17/2024 - ATUB, publicado no DODF nº 78-B, em 25 de outubro de 2024, referente ao Edital nº 01/2022 – ATUB, publicado no DODF nº 215, de 18 de novembro de 2022, para provimento de vagas e formação de cadastro de reserva para os cargos de Auditor de Atividades Urbanas e Auditor Fiscal de Atividades Urbanas, em virtude de Decisão Judicial transitada em julgado proferida no Processo Judicial nº 0725197-41.2023.8.07.0000 e a instrução constante no Processo SEI nº 04033- 00017712/2023-54, conforme abaixo relacionado (cargo, área de especialização, número de inscrição, nome, lista de classificação, nota final, ordem de classificação): Auditor Fiscal de Atividades Urbanas - Atividades Econômicas e Urbanas (Código 103), 0310118269, JAQUELINE MENDES MARTINS, Ampla Concorrência, 100.43, 51ª. MARCELO RIBEIRO ALVIM SECRETARIA EXECUTIVA DA RECEITA SUBSECRETARIA DE INFORMAÇÕES FISCAIS E ATENDIMENTO AO CONTRIBUINTE COORDENAÇÃO DO CADASTRO FISCAL E NOTA LEGAL GERÊNCIA DE GESTÃO DE SISTEMAS DO CADASTRO FISCAL",
+    "identity": "2e77e513346fa66babfff1113513896e4e0a5d0476e31c9b9acff3120a1912d0",
+    "recollection_key": "f3f3f0bc88a10cef1560678e551efd48205812f9c266404a2456c09dbba00490"
+  }
+]

@@ -5,8 +5,16 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/atub.xml</link>
     <description>Atos relativos aos concursos da carreira Auditoria de Atividades Urbanas.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Tue, 28 Jul 2026 13:07:45 -0300</lastBuildDate>
+    <lastBuildDate>Tue, 28 Jul 2026 13:11:06 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
+    <item>
+      <title>[DODF] Publica edital do concurso ATUB</title>
+      <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=93785555-2059-3435-ace6-59756c7c6b3f#page=41</link>
+      <guid isPermaLink="false">2e77e513346fa66babfff1113513896e4e0a5d0476e31c9b9acff3120a1912d0</guid>
+      <pubDate>Tue, 28 Jul 2026 06:00:00 -0300</pubDate>
+      <category>Concurso ATUB</category>
+      <description>Edital nº 17/2024 - ATUB, publicado no DODF nº 78-B, em 25 de outubro de 2024, referente ao Edital nº 01/2022 – ATUB, publicado no DODF nº 215, de 18 de novembro de 2022, para provimento de vagas e formação de cadastro de reserva para os cargos de Auditor de Atividades Urbanas e Auditor Fiscal de…</description>
+    </item>
   </channel>
 </rss>
