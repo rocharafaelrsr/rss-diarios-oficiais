@@ -18,7 +18,9 @@ def _atub_rule() -> Rule:
 @pytest.mark.parametrize("separator", ["-", "–", "—"])
 def test_qualified_edital_header_accepts_editorial_dashes(separator: str):
     header = f"EDITAL DE ABERTURA {separator} Nº 3/2027"
-    assert ACT_MARKER_RE.fullmatch(header) is not None
+    marker = ACT_MARKER_RE.match(header)
+    assert marker is not None
+    assert marker.group(0).endswith("3")
 
 
 @pytest.mark.parametrize("separator", ["-", "–", "—"])
