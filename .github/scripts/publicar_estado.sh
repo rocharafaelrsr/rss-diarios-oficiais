@@ -37,6 +37,15 @@ for path in paths:
 PY
 }
 
+run_collection() {
+  if [[ "$SOURCE" == "dodf" ]]; then
+    python src/main_dodf.py
+  else
+    # O fluxo do DOU permanece exatamente no entrypoint original.
+    python src/main.py --source "$SOURCE"
+  fi
+}
+
 retry_collection_status=0
 
 if ! commit_current_state; then
@@ -60,7 +69,7 @@ for attempt in 1 2 3; do
   git reset --hard origin/main
 
   set +e
-  python src/main.py --source "$SOURCE"
+  run_collection
   retry_collection_status=$?
   set -e
 
