@@ -5,17 +5,9 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/ldo.xml</link>
     <description>Publicação de LDO e alterações com efeito sobre concursos, provimentos e pessoal.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Thu, 30 Jul 2026 20:18:08 -0300</lastBuildDate>
+    <lastBuildDate>Thu, 30 Jul 2026 20:33:02 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
-    <item>
-      <title>[DOU] Altera a LDO quanto a concursos e provimentos</title>
-      <link>https://www.in.gov.br/consulta/-/buscar/dou?q=Mat%C3%A9ria+do+DOU+%28515_20260729_24171790-11.xml%29&amp;s=todos&amp;exactDate=personalizado&amp;sortType=0&amp;publishFrom=29-07-2026&amp;publishTo=29-07-2026</link>
-      <guid isPermaLink="false">e0e0c85b112870bde2f479689edfa5a0c3a5e7629f5aa396bd4373e6508046f9</guid>
-      <pubDate>Wed, 29 Jul 2026 06:00:00 -0300</pubDate>
-      <category>Alteração da LDO sobre concursos</category>
-      <description>A publicação modifica a LDO em dispositivos relativos a concursos, provimentos, cargos ou admissões de pessoal</description>
-    </item>
     <item>
       <title>[DODF] Publica a LDO do Distrito Federal de 2027</title>
       <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=41ebec23-ce4f-398b-8bb6-2b738eaf1276#page=1</link>
@@ -23,6 +15,14 @@
       <pubDate>Wed, 29 Jul 2026 06:00:00 -0300</pubDate>
       <category>Publicação da LDO</category>
       <description>A publicação estabelece as diretrizes orçamentárias do Distrito Federal para 2027</description>
+    </item>
+    <item>
+      <title>[DOU] Altera a LDO quanto a concursos e provimentos</title>
+      <link>https://www.in.gov.br/consulta/-/buscar/dou?q=Mat%C3%A9ria+do+DOU+%28515_20260729_24171790-11.xml%29&amp;s=todos&amp;exactDate=personalizado&amp;sortType=0&amp;publishFrom=29-07-2026&amp;publishTo=29-07-2026</link>
+      <guid isPermaLink="false">e0e0c85b112870bde2f479689edfa5a0c3a5e7629f5aa396bd4373e6508046f9</guid>
+      <pubDate>Wed, 29 Jul 2026 06:00:00 -0300</pubDate>
+      <category>Alteração da LDO sobre concursos</category>
+      <description>A publicação modifica a LDO em dispositivos relativos a concursos, provimentos, cargos ou admissões de pessoal</description>
     </item>
   </channel>
 </rss>
