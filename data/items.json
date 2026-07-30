@@ -1,29 +1,5 @@
 [
   {
-    "guid": "e0e0c85b112870bde2f479689edfa5a0c3a5e7629f5aa396bd4373e6508046f9",
-    "category": "ldo_concursos",
-    "category_label": "Alteração da LDO sobre concursos",
-    "priority": 10,
-    "source": "dou",
-    "source_label": "Diário Oficial da União",
-    "title": "[DOU] Altera a LDO quanto a concursos e provimentos",
-    "link": "https://www.in.gov.br/consulta/-/buscar/dou?q=Mat%C3%A9ria+do+DOU+%28515_20260729_24171790-11.xml%29&s=todos&exactDate=personalizado&sortType=0&publishFrom=29-07-2026&publishTo=29-07-2026",
-    "published_at": "2026-07-29T06:00:00-03:00",
-    "collected_at": "2026-07-29T20:29:56.412231-03:00",
-    "edition": "",
-    "section": "",
-    "page": null,
-    "excerpt": "A publicação modifica a LDO em dispositivos relativos a concursos, provimentos, cargos ou admissões de pessoal",
-    "matched_terms": [
-      "despesa de pessoal",
-      "emenda",
-      " ldo "
-    ],
-    "evidence": "… 7 4 190 22.781 0 0 22.975 1.296.642 TRANSFERÊNCIAS INTERGOVERNAMENTAIS 65.176 0 0 0 0 0 0 65.176 Transferências a Estados e ao DF 65.176 0 0 0 0 0 0 65.176 TOTAL (A) 309.146.002 101.276.576 28.806.359 21.970.968 4.468.479 23.092.821 179.615.204 488.761.206 EXECUÇÃO ADMINISTRAÇÃO ADMINISTRAÇÃO INDIRETA TOTAL DIRETA Autarquias Fundações Empresas Públicas Economia Mista Fundos Especiais Total Indireta GERAL APLICAÇÃO DIRETA 145.988.566 47.166.002 13.306.240 9.615.187 1.767.688 12.531.890 84.387.008 230.375.574 Pessoal Civil 95.921.980 47.165.869 13.304.870 9.529.901 1.767.688 10.940.526 82.708.854 178.630.834 Vencimentos e Vantagens Fixas 27.746.403 15.064.814 4.009.721 6.180.612 1.033.516 4.124.137 30.412.801 58.159.205 Vencimentos e Vantagens Fixas - Cargos em Comissão² 12.928.099 10.047.353 2.780.342 527.546 102.052 41.153 13.498.446 26.426.545 Outras Despesas Variáveis 625.850 152.359 27.327 293.876 113.773 23.887 611.222 1.237.071 Aposentadoria 25.580.437 13.011.462 3.711.156 0 0 5.406.486 22.129.104 47.709.541 Pensões 10.821.856 3.077.624 1.031.737 0 0 795.983 4.905.344 15.727.200 Contribuições a Entidades Fechadas de Previdência 518.301 232.673 48.993 178.922 64.666 0 525.255 1.043.556 Obrigações Patronais 6.131.615 4.783.730 1.320.070 2.090.921 197.978 163.845 8.556.544 14.688.160 Outras Aplicações¹ 11.569.418 795.853 375.524 258.023 255.704 385.035 2.070.138 13.639.557 Pessoal Militar 50.066.586 134 1.370 85.286 0 1.591.364 1.678.154 51.744.740 Vencimentos e Vantagens Fixas 16.705.015 0 0 0 0 1.591.364 1.591.364 18.296.379 Outras Despesas Variáveis 448.764 0 0 0 0 0 0 448.764 Reformas 17.571.989 0 0 0 0 0 0 17.571.989 Pensões 14.481.422 0 0 0 0 0 0 14.481.422 Obrigações Patronais 127.314 134 1.267 73.572 0 0 74.973 202.286 Outras Aplicações¹ 732.084 0 103 11.714 0 0 11.817 743.901 TRANSFERÊNCIAS INTERGOVERNAMENTAIS 0 0 0 0 0 0 0 0 Transferências a Estados e ao DF 0 0 0 0 0 0 0 0 TOTAL (B) 145.988.566 47.166.002 13.306.240 9.615.187 1.767.688 12.531.890 84.387.008 230.375.574 A EXECUTAR (% A/B) 52,8 53,4 53,8 56,2 60,4 45,7 53,0 52,9 FONTE: SIAFI - STN/CCONT/GEINF ¹Outras Aplicações compõem-se de: Outros Benefícios Assistenciais; Salário Família; Sentenças Judiciais; Despesas de Exercícios Anteriores; Indenizações Trabalhistas; Depósitos Compulsórios; Contrato por Tempo Determinado; Outras Desp.Pessoal Dec.Contratos Terceirização; e Ressarcimento de Despesa de Pessoal Requisitado. ²Os valores referentes aos Cargos em Comissão são identificados pelos subitens da despesa Gratificação por Exercício de Cargos e Gratificação por Exercício de Funções, do elemento Vencimentos e Vantagens Fixas. TABELA 3 - DEMONSTRATIVO DE DESPESAS DISCRICIONÁRIAS E DECORRENTES DE EMENDAS INDIVIDUAIS ORÇAMENTOS FISCAL E DA SEGURIDADE SOCIAL JANEIRO A JUNHO DE 2026 LDO -",
-    "identity": "e0e0c85b112870bde2f479689edfa5a0c3a5e7629f5aa396bd4373e6508046f9",
-    "recollection_key": "e18130e54b70c2129059aedf1c9a0f91cf86852c83810e6b276d1e9dacd58687"
-  },
-  {
     "guid": "2714e88c7e48a814a07b7dd89d4e15de633570ced667ca1a8b9b44317d3af002",
     "category": "ldo",
     "category_label": "Publicação da LDO",
@@ -46,6 +22,30 @@
     "evidence": "LEI Nº 7.938, DE 28 DE JULHO DE 2026 (Autoria: Poder Executivo) Dispõe sobre as diretrizes orçamentárias para o exercício financeiro de 2027 e dá outras providências. A GOVERNADORA DO DISTRITO FEDERAL, FAÇO SABER QUE A CÂMARA LEGISLATIVA DO DISTRITO FEDERAL DECRETA E EU SANCIONO A SEGUINTE LEI: CAPÍTULO I DAS DISPOSIÇÕES INICIAIS Art. 1º Esta Lei estabelece as diretrizes orçamentárias para o exercício de 2027, contendo: I - a estrutura e organização do orçamento; II - as metas, prioridades e as metas fiscais; III - as diretrizes para elaboração do orçamento; IV - as disposições relativas a despesas com pessoal, encargos sociais e benefícios aos servidores, empregados e seus dependentes; V - as diretrizes para execução e alterações do orçamento; VI - a política de aplicação do agente financeiro oficial de fomento; VII - as disposições sobre alterações na legislação tributária; VIII - as disposições sobre política tarifária; IX - as disposições sobre a transparência e a participação popular; X - as disposições finais. CAPÍTULO II DA ESTRUTURA E ORGANIZAÇÃO DO ORÇAMENTO Art. 2º A elaboração, aprovação, execução e o controle do cumprimento da Lei Orçamentária Anual devem: I - manter o equilíbrio entre receitas e despesas; II - visar o alcance dos objetivos e metas previstos no Plano Plurianual - PPA 2024-2027; III - observar o princípio da publicidade, evidenciando a transparência na gestão fiscal por meio de sítio eletrônico na internet com atualização periódica; IV - observar as metas relativas a receitas, despesas, resultados primário e nominal e montante da dívida pública estabelecidos no Anexo II - Metas Fiscais desta Lei; e V - assegurar os recursos necessários à execução e expansão das despesas obrigatórias de caráter continuado, discriminadas no Anexo VI desta Lei. Art. 3º As programações orçamentárias devem atender as seguintes finalidades: I - ampliar a capacidade do Poder Público de prover ou garantir o provimento de bens e serviços à população do Distrito Federal; II - assegurar compatibilidade de usos dos recursos naturais com a capacidade de suporte ambiental para o desenvolvimento econômico sustentável; III - gerar emprego e renda com sustentabilidade econômica, social e ambiental; IV - reduzir as desigualdades sociais; V - fomentar a gestão pública eficiente e transparente voltada para a promoção do desenvolvimento humano e da qualidade de vida da população do Distrito Federal; VI - fomentar a promoção de manifestações culturais e religiosas; VII - reduzir as fragilidades institucionais que comprometam a implementação dos programas, inclusive resguardando a segurança jurídica; VIII - reduzir as desigualdades entre Regiões Administrativas do Distrito Federal; IX - fomentar o desenvolvimento econômico local, por meio de políticas públicas e …",
     "identity": "2714e88c7e48a814a07b7dd89d4e15de633570ced667ca1a8b9b44317d3af002",
     "recollection_key": "403dbb6ed5885b4e6e6662ddd86209654e4d3a4196aa5c75fa909312012991b1"
+  },
+  {
+    "guid": "e0e0c85b112870bde2f479689edfa5a0c3a5e7629f5aa396bd4373e6508046f9",
+    "category": "ldo_concursos",
+    "category_label": "Alteração da LDO sobre concursos",
+    "priority": 10,
+    "source": "dou",
+    "source_label": "Diário Oficial da União",
+    "title": "[DOU] Altera a LDO quanto a concursos e provimentos",
+    "link": "https://www.in.gov.br/consulta/-/buscar/dou?q=Mat%C3%A9ria+do+DOU+%28515_20260729_24171790-11.xml%29&s=todos&exactDate=personalizado&sortType=0&publishFrom=29-07-2026&publishTo=29-07-2026",
+    "published_at": "2026-07-29T06:00:00-03:00",
+    "collected_at": "2026-07-30T09:11:53.497680-03:00",
+    "edition": "",
+    "section": "",
+    "page": null,
+    "excerpt": "A publicação modifica a LDO em dispositivos relativos a concursos, provimentos, cargos ou admissões de pessoal",
+    "matched_terms": [
+      "despesa de pessoal",
+      "emenda",
+      " ldo "
+    ],
+    "evidence": "… 7 4 190 22.781 0 0 22.975 1.296.642 TRANSFERÊNCIAS INTERGOVERNAMENTAIS 65.176 0 0 0 0 0 0 65.176 Transferências a Estados e ao DF 65.176 0 0 0 0 0 0 65.176 TOTAL (A) 309.146.002 101.276.576 28.806.359 21.970.968 4.468.479 23.092.821 179.615.204 488.761.206 EXECUÇÃO ADMINISTRAÇÃO ADMINISTRAÇÃO INDIRETA TOTAL DIRETA Autarquias Fundações Empresas Públicas Economia Mista Fundos Especiais Total Indireta GERAL APLICAÇÃO DIRETA 145.988.566 47.166.002 13.306.240 9.615.187 1.767.688 12.531.890 84.387.008 230.375.574 Pessoal Civil 95.921.980 47.165.869 13.304.870 9.529.901 1.767.688 10.940.526 82.708.854 178.630.834 Vencimentos e Vantagens Fixas 27.746.403 15.064.814 4.009.721 6.180.612 1.033.516 4.124.137 30.412.801 58.159.205 Vencimentos e Vantagens Fixas - Cargos em Comissão² 12.928.099 10.047.353 2.780.342 527.546 102.052 41.153 13.498.446 26.426.545 Outras Despesas Variáveis 625.850 152.359 27.327 293.876 113.773 23.887 611.222 1.237.071 Aposentadoria 25.580.437 13.011.462 3.711.156 0 0 5.406.486 22.129.104 47.709.541 Pensões 10.821.856 3.077.624 1.031.737 0 0 795.983 4.905.344 15.727.200 Contribuições a Entidades Fechadas de Previdência 518.301 232.673 48.993 178.922 64.666 0 525.255 1.043.556 Obrigações Patronais 6.131.615 4.783.730 1.320.070 2.090.921 197.978 163.845 8.556.544 14.688.160 Outras Aplicações¹ 11.569.418 795.853 375.524 258.023 255.704 385.035 2.070.138 13.639.557 Pessoal Militar 50.066.586 134 1.370 85.286 0 1.591.364 1.678.154 51.744.740 Vencimentos e Vantagens Fixas 16.705.015 0 0 0 0 1.591.364 1.591.364 18.296.379 Outras Despesas Variáveis 448.764 0 0 0 0 0 0 448.764 Reformas 17.571.989 0 0 0 0 0 0 17.571.989 Pensões 14.481.422 0 0 0 0 0 0 14.481.422 Obrigações Patronais 127.314 134 1.267 73.572 0 0 74.973 202.286 Outras Aplicações¹ 732.084 0 103 11.714 0 0 11.817 743.901 TRANSFERÊNCIAS INTERGOVERNAMENTAIS 0 0 0 0 0 0 0 0 Transferências a Estados e ao DF 0 0 0 0 0 0 0 0 TOTAL (B) 145.988.566 47.166.002 13.306.240 9.615.187 1.767.688 12.531.890 84.387.008 230.375.574 A EXECUTAR (% A/B) 52,8 53,4 53,8 56,2 60,4 45,7 53,0 52,9 FONTE: SIAFI - STN/CCONT/GEINF ¹Outras Aplicações compõem-se de: Outros Benefícios Assistenciais; Salário Família; Sentenças Judiciais; Despesas de Exercícios Anteriores; Indenizações Trabalhistas; Depósitos Compulsórios; Contrato por Tempo Determinado; Outras Desp.Pessoal Dec.Contratos Terceirização; e Ressarcimento de Despesa de Pessoal Requisitado. ²Os valores referentes aos Cargos em Comissão são identificados pelos subitens da despesa Gratificação por Exercício de Cargos e Gratificação por Exercício de Funções, do elemento Vencimentos e Vantagens Fixas. TABELA 3 - DEMONSTRATIVO DE DESPESAS DISCRICIONÁRIAS E DECORRENTES DE EMENDAS INDIVIDUAIS ORÇAMENTOS FISCAL E DA SEGURIDADE SOCIAL JANEIRO A JUNHO DE 2026 LDO -",
+    "identity": "e0e0c85b112870bde2f479689edfa5a0c3a5e7629f5aa396bd4373e6508046f9",
+    "recollection_key": "e18130e54b70c2129059aedf1c9a0f91cf86852c83810e6b276d1e9dacd58687"
   },
   {
     "guid": "2e77e513346fa66babfff1113513896e4e0a5d0476e31c9b9acff3120a1912d0",
