@@ -1,29 +1,5 @@
 [
   {
-    "guid": "2714e88c7e48a814a07b7dd89d4e15de633570ced667ca1a8b9b44317d3af002",
-    "category": "ldo",
-    "category_label": "Publicação da LDO",
-    "priority": 10,
-    "source": "dodf",
-    "source_label": "Diário Oficial do Distrito Federal",
-    "title": "[DODF] Publica a LDO do Distrito Federal de 2027",
-    "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=41ebec23-ce4f-398b-8bb6-2b738eaf1276#page=1",
-    "published_at": "2026-07-29T06:00:00-03:00",
-    "collected_at": "2026-08-01T08:36:58.816179-03:00",
-    "edition": "DODF (SINJ)",
-    "section": "",
-    "page": 1,
-    "excerpt": "A publicação estabelece as diretrizes orçamentárias do Distrito Federal para 2027",
-    "matched_terms": [
-      "estabelece as diretrizes",
-      "diretrizes orçamentárias",
-      "para o exercício de 2027"
-    ],
-    "evidence": "LEI Nº 7.938, DE 28 DE JULHO DE 2026 (Autoria: Poder Executivo) Dispõe sobre as diretrizes orçamentárias para o exercício financeiro de 2027 e dá outras providências. A GOVERNADORA DO DISTRITO FEDERAL, FAÇO SABER QUE A CÂMARA LEGISLATIVA DO DISTRITO FEDERAL DECRETA E EU SANCIONO A SEGUINTE LEI: CAPÍTULO I DAS DISPOSIÇÕES INICIAIS Art. 1º Esta Lei estabelece as diretrizes orçamentárias para o exercício de 2027, contendo: I - a estrutura e organização do orçamento; II - as metas, prioridades e as metas fiscais; III - as diretrizes para elaboração do orçamento; IV - as disposições relativas a despesas com pessoal, encargos sociais e benefícios aos servidores, empregados e seus dependentes; V - as diretrizes para execução e alterações do orçamento; VI - a política de aplicação do agente financeiro oficial de fomento; VII - as disposições sobre alterações na legislação tributária; VIII - as disposições sobre política tarifária; IX - as disposições sobre a transparência e a participação popular; X - as disposições finais. CAPÍTULO II DA ESTRUTURA E ORGANIZAÇÃO DO ORÇAMENTO Art. 2º A elaboração, aprovação, execução e o controle do cumprimento da Lei Orçamentária Anual devem: I - manter o equilíbrio entre receitas e despesas; II - visar o alcance dos objetivos e metas previstos no Plano Plurianual - PPA 2024-2027; III - observar o princípio da publicidade, evidenciando a transparência na gestão fiscal por meio de sítio eletrônico na internet com atualização periódica; IV - observar as metas relativas a receitas, despesas, resultados primário e nominal e montante da dívida pública estabelecidos no Anexo II - Metas Fiscais desta Lei; e V - assegurar os recursos necessários à execução e expansão das despesas obrigatórias de caráter continuado, discriminadas no Anexo VI desta Lei. Art. 3º As programações orçamentárias devem atender as seguintes finalidades: I - ampliar a capacidade do Poder Público de prover ou garantir o provimento de bens e serviços à população do Distrito Federal; II - assegurar compatibilidade de usos dos recursos naturais com a capacidade de suporte ambiental para o desenvolvimento econômico sustentável; III - gerar emprego e renda com sustentabilidade econômica, social e ambiental; IV - reduzir as desigualdades sociais; V - fomentar a gestão pública eficiente e transparente voltada para a promoção do desenvolvimento humano e da qualidade de vida da população do Distrito Federal; VI - fomentar a promoção de manifestações culturais e religiosas; VII - reduzir as fragilidades institucionais que comprometam a implementação dos programas, inclusive resguardando a segurança jurídica; VIII - reduzir as desigualdades entre Regiões Administrativas do Distrito Federal; IX - fomentar o desenvolvimento econômico local, por meio de políticas públicas e …",
-    "identity": "2714e88c7e48a814a07b7dd89d4e15de633570ced667ca1a8b9b44317d3af002",
-    "recollection_key": "403dbb6ed5885b4e6e6662ddd86209654e4d3a4196aa5c75fa909312012991b1"
-  },
-  {
     "guid": "e0e0c85b112870bde2f479689edfa5a0c3a5e7629f5aa396bd4373e6508046f9",
     "category": "ldo_concursos",
     "category_label": "Alteração da LDO sobre concursos",
@@ -48,6 +24,30 @@
     "recollection_key": "e18130e54b70c2129059aedf1c9a0f91cf86852c83810e6b276d1e9dacd58687"
   },
   {
+    "guid": "2714e88c7e48a814a07b7dd89d4e15de633570ced667ca1a8b9b44317d3af002",
+    "category": "ldo",
+    "category_label": "Publicação da LDO",
+    "priority": 10,
+    "source": "dodf",
+    "source_label": "Diário Oficial do Distrito Federal",
+    "title": "[DODF] Publica a LDO do Distrito Federal de 2027",
+    "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=41ebec23-ce4f-398b-8bb6-2b738eaf1276#page=1",
+    "published_at": "2026-07-29T06:00:00-03:00",
+    "collected_at": "2026-08-01T12:18:43.395564-03:00",
+    "edition": "DODF (SINJ)",
+    "section": "",
+    "page": 1,
+    "excerpt": "A publicação estabelece as diretrizes orçamentárias do Distrito Federal para 2027",
+    "matched_terms": [
+      "estabelece as diretrizes",
+      "diretrizes orçamentárias",
+      "para o exercício de 2027"
+    ],
+    "evidence": "LEI Nº 7.938, DE 28 DE JULHO DE 2026 (Autoria: Poder Executivo) Dispõe sobre as diretrizes orçamentárias para o exercício financeiro de 2027 e dá outras providências. A GOVERNADORA DO DISTRITO FEDERAL, FAÇO SABER QUE A CÂMARA LEGISLATIVA DO DISTRITO FEDERAL DECRETA E EU SANCIONO A SEGUINTE LEI: CAPÍTULO I DAS DISPOSIÇÕES INICIAIS Art. 1º Esta Lei estabelece as diretrizes orçamentárias para o exercício de 2027, contendo: I - a estrutura e organização do orçamento; II - as metas, prioridades e as metas fiscais; III - as diretrizes para elaboração do orçamento; IV - as disposições relativas a despesas com pessoal, encargos sociais e benefícios aos servidores, empregados e seus dependentes; V - as diretrizes para execução e alterações do orçamento; VI - a política de aplicação do agente financeiro oficial de fomento; VII - as disposições sobre alterações na legislação tributária; VIII - as disposições sobre política tarifária; IX - as disposições sobre a transparência e a participação popular; X - as disposições finais. CAPÍTULO II DA ESTRUTURA E ORGANIZAÇÃO DO ORÇAMENTO Art. 2º A elaboração, aprovação, execução e o controle do cumprimento da Lei Orçamentária Anual devem: I - manter o equilíbrio entre receitas e despesas; II - visar o alcance dos objetivos e metas previstos no Plano Plurianual - PPA 2024-2027; III - observar o princípio da publicidade, evidenciando a transparência na gestão fiscal por meio de sítio eletrônico na internet com atualização periódica; IV - observar as metas relativas a receitas, despesas, resultados primário e nominal e montante da dívida pública estabelecidos no Anexo II - Metas Fiscais desta Lei; e V - assegurar os recursos necessários à execução e expansão das despesas obrigatórias de caráter continuado, discriminadas no Anexo VI desta Lei. Art. 3º As programações orçamentárias devem atender as seguintes finalidades: I - ampliar a capacidade do Poder Público de prover ou garantir o provimento de bens e serviços à população do Distrito Federal; II - assegurar compatibilidade de usos dos recursos naturais com a capacidade de suporte ambiental para o desenvolvimento econômico sustentável; III - gerar emprego e renda com sustentabilidade econômica, social e ambiental; IV - reduzir as desigualdades sociais; V - fomentar a gestão pública eficiente e transparente voltada para a promoção do desenvolvimento humano e da qualidade de vida da população do Distrito Federal; VI - fomentar a promoção de manifestações culturais e religiosas; VII - reduzir as fragilidades institucionais que comprometam a implementação dos programas, inclusive resguardando a segurança jurídica; VIII - reduzir as desigualdades entre Regiões Administrativas do Distrito Federal; IX - fomentar o desenvolvimento econômico local, por meio de políticas públicas e …",
+    "identity": "2714e88c7e48a814a07b7dd89d4e15de633570ced667ca1a8b9b44317d3af002",
+    "recollection_key": "403dbb6ed5885b4e6e6662ddd86209654e4d3a4196aa5c75fa909312012991b1"
+  },
+  {
     "guid": "2e77e513346fa66babfff1113513896e4e0a5d0476e31c9b9acff3120a1912d0",
     "category": "atub",
     "category_label": "Concurso ATUB",
@@ -57,7 +57,7 @@
     "title": "[DODF] Publica edital do concurso ATUB",
     "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=93785555-2059-3435-ace6-59756c7c6b3f#page=41",
     "published_at": "2026-07-28T06:00:00-03:00",
-    "collected_at": "2026-08-01T08:36:58.816179-03:00",
+    "collected_at": "2026-08-01T12:18:43.395564-03:00",
     "edition": "DODF (SINJ)",
     "section": "",
     "page": 41,
