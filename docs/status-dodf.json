@@ -1,13 +1,13 @@
 {
-  "run_id": "30817472853-1",
-  "started_at": "2026-08-03T10:20:35.153521-03:00",
+  "run_id": "30833215999-1",
+  "started_at": "2026-08-03T13:40:37.780701-03:00",
   "reference_date": "2026-08-03",
   "sources": {
     "dodf": {
       "enabled": true,
       "documents": 302,
       "backend": "sinj",
-      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785726000 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fb56ad6b8f0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785726000 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f107376e2d0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "documents_by_date": {
         "2026-08-03": 91,
         "2026-08-02": 0,
@@ -17,7 +17,7 @@
       },
       "primary_attempts": 1,
       "primary_circuit_open": true,
-      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785726000 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fb56ad6b8f0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785726000 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f107376e2d0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "primary_skipped_dates": [
         "2026-08-02",
         "2026-08-01",
@@ -38,7 +38,7 @@
     }
   },
   "errors": [],
-  "finished_at": "2026-08-03T10:20:58.594653-03:00",
+  "finished_at": "2026-08-03T13:40:55.024869-03:00",
   "documents_examined": 302,
   "new_matches": 0,
   "stored_items": 3,
