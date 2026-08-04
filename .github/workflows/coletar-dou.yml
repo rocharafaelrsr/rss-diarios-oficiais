@@ -2,8 +2,8 @@ name: Coletar DOU
 
 on:
   schedule:
-    # Dez minutos após o DODF: 07h27, 11h27, 15h27 e 19h27 em Brasília.
-    - cron: "27 10,14,18,22 * * *"
+    # 07h27 no horário de Brasília (UTC-3), dez minutos após o DODF.
+    - cron: "27 10 * * *"
   workflow_dispatch:
 
 permissions:
