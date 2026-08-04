@@ -2,8 +2,8 @@ name: Coletar DODF
 
 on:
   schedule:
-    # 07h17, 11h17, 15h17 e 19h17 no horário de Brasília (UTC-3).
-    - cron: "17 10,14,18,22 * * *"
+    # 07h17 no horário de Brasília (UTC-3).
+    - cron: "17 10 * * *"
   workflow_dispatch:
 
 permissions:
