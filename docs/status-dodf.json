@@ -1,36 +1,38 @@
 {
-  "run_id": "31100972316-1",
-  "started_at": "2026-08-06T09:20:43.038572-03:00",
-  "reference_date": "2026-08-06",
+  "run_id": "31172884626-1",
+  "started_at": "2026-08-07T08:09:00.580257-03:00",
+  "reference_date": "2026-08-07",
   "sources": {
     "dodf": {
       "enabled": true,
-      "documents": 289,
+      "documents": 362,
       "backend": "sinj",
-      "fallback_reason": "fim de semana: portal diário primário não consultado",
+      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1786071600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fc52a172000>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "documents_by_date": {
-        "2026-08-06": 84,
+        "2026-08-07": 71,
+        "2026-08-06": 86,
         "2026-08-05": 64,
         "2026-08-04": 47,
-        "2026-08-03": 94,
-        "2026-08-02": 0
+        "2026-08-03": 94
       },
       "primary_attempts": 1,
       "primary_circuit_open": true,
-      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1785985200 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f5978b86780>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1786071600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fc52a172000>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "primary_skipped_dates": [
+        "2026-08-06",
         "2026-08-05",
         "2026-08-04",
-        "2026-08-03",
-        "2026-08-02"
+        "2026-08-03"
       ],
       "business_days_checked": [
+        "2026-08-07",
         "2026-08-06",
         "2026-08-05",
         "2026-08-04",
         "2026-08-03"
       ],
       "business_days_with_documents": [
+        "2026-08-07",
         "2026-08-06",
         "2026-08-05",
         "2026-08-04",
@@ -40,8 +42,8 @@
     }
   },
   "errors": [],
-  "finished_at": "2026-08-06T09:21:01.804673-03:00",
-  "documents_examined": 289,
+  "finished_at": "2026-08-07T08:09:22.943469-03:00",
+  "documents_examined": 362,
   "new_matches": 0,
   "stored_items": 3,
   "items_removed_out_of_scope": 0,
