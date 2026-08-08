@@ -1,16 +1,16 @@
 {
-  "started_at": "2026-08-07T08:12:54.248385-03:00",
-  "reference_date": "2026-08-07",
+  "started_at": "2026-08-08T07:56:13.685550-03:00",
+  "reference_date": "2026-08-08",
   "sources": {
     "dou": {
-      "documents": 3485,
-      "backend": "inlabs",
-      "fallback_reason": "INLABS indisponível durante o login: 502 Server Error: Bad Gateway for url: https://inlabs.in.gov.br/logar.php"
+      "documents": 0,
+      "backend": "busca_publica",
+      "fallback_reason": "INLABS indisponível durante o login: HTTPSConnectionPool(host='inlabs.in.gov.br', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='inlabs.in.gov.br', port=443) at 0x7faf452b4740>, 'Connection to inlabs.in.gov.br timed out. (connect timeout=10)'))"
     }
   },
   "errors": [],
-  "finished_at": "2026-08-07T08:13:38.044685-03:00",
-  "documents_examined": 3485,
+  "finished_at": "2026-08-08T07:59:59.024357-03:00",
+  "documents_examined": 0,
   "new_matches": 0,
   "stored_items": 3,
   "items_removed_out_of_scope": 0
