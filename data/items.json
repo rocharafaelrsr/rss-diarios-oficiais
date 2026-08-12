@@ -1,5 +1,31 @@
 [
   {
+    "guid": "d9c0fc809cc4cb31b8950c84e09daacaaa18b8de7725415046afb96eb8759c27",
+    "category": "atub",
+    "category_label": "Concurso ATUB",
+    "priority": 10,
+    "source": "dodf",
+    "source_label": "Diário Oficial do Distrito Federal",
+    "title": "[DODF] Publica ato relativo ao concurso ATUB",
+    "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=936abbc6-0761-3674-94b6-3acfd0f400e3#page=28",
+    "published_at": "2026-08-12T06:00:00-03:00",
+    "collected_at": "2026-08-12T08:12:01.952962-03:00",
+    "edition": "DODF (SINJ)",
+    "section": "",
+    "page": 28,
+    "excerpt": "Deduz-se desse tempo 33 dias para fins de adicional, referentes a licença médica para acompanhar pessoa da família e curso de formação",
+    "matched_terms": [
+      "auditor de atividades urbanas",
+      "auditora de atividades urbanas",
+      "auditores de atividades urbanas",
+      "auditoras de atividades urbanas",
+      "curso de formação"
+    ],
+    "evidence": "Portaria nº 489/2025, resolve: AVERBAR O TEMPO DE SERVIÇO E/OU CONTRIBUIÇÃO, prestado pelo (a) servidor (a) abaixo indicado (a), ao órgão e entidade a seguir mencionada (nome, matrícula, cargo, lotação): ANDREIA DE SOUZA SOARES, 1.685.681-3, Técnico em Enfermagem, Secretaria de Estado de Saúde do DF. 4.024 dias, ou seja, 11 anos e 9 dias, conforme certidão expedida pelo INSS, nos períodos de 1º de agosto de 1994 a 30 de abril de 1997, 01 de junho de 1997 a 31 de maio de 1999, 1º de abril de 2000 a 31 de março de 2006, 03 de dezembro de 2007 a 13 de dezembro de 2007 e 16 de julho de 2012 a 11 de outubro de 2012, contados somente para fins de aposentadoria, conforme processo nº 00060-00552676/2023-65 RENATA GARCIA CARNEIRO, 1.730.768-6, Auditor de Atividades Urbanas, Secretaria de Estado de Saúde do Distrito Federal. 1.373 dias, ou seja, 3 anos, 9 meses e 8 dias, prestados à Secretaria de Estado de Saúde do DF, no período de 19 de julho de 2022 a 21 de abril de 2026, contados para fins de adicional e aposentadoria. Deduz-se desse tempo 33 dias para fins de adicional, referentes a licença médica para acompanhar pessoa da família e curso de formação. Processo nº 00060-00260181/2026-55. LUCIANA DA SILVA LIRA OLIVEIRA REIS",
+    "identity": "d9c0fc809cc4cb31b8950c84e09daacaaa18b8de7725415046afb96eb8759c27",
+    "recollection_key": "8f6a3a6c9a24890b49a064271b5627715a9e52ea7d31498fc7448405e0eead7f"
+  },
+  {
     "guid": "2714e88c7e48a814a07b7dd89d4e15de633570ced667ca1a8b9b44317d3af002",
     "category": "ldo",
     "category_label": "Publicação da LDO",

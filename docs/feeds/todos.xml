@@ -5,9 +5,17 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/todos.xml</link>
     <description>ATUB, LDO e autorizações de concursos no DODF e no DOU.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Tue, 11 Aug 2026 08:10:08 -0300</lastBuildDate>
+    <lastBuildDate>Wed, 12 Aug 2026 08:12:01 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
+    <item>
+      <title>[DODF] Publica ato relativo ao concurso ATUB</title>
+      <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=936abbc6-0761-3674-94b6-3acfd0f400e3#page=28</link>
+      <guid isPermaLink="false">d9c0fc809cc4cb31b8950c84e09daacaaa18b8de7725415046afb96eb8759c27</guid>
+      <pubDate>Wed, 12 Aug 2026 06:00:00 -0300</pubDate>
+      <category>Concurso ATUB</category>
+      <description>Deduz-se desse tempo 33 dias para fins de adicional, referentes a licença médica para acompanhar pessoa da família e curso de formação</description>
+    </item>
     <item>
       <title>[DODF] Publica a LDO do Distrito Federal de 2027</title>
       <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=41ebec23-ce4f-398b-8bb6-2b738eaf1276#page=1</link>
