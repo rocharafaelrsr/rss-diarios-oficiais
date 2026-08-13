@@ -1,16 +1,16 @@
 {
-  "started_at": "2026-08-12T08:13:52.764045-03:00",
-  "reference_date": "2026-08-12",
+  "started_at": "2026-08-13T08:14:28.231565-03:00",
+  "reference_date": "2026-08-13",
   "sources": {
     "dou": {
-      "documents": 10244,
+      "documents": 13878,
       "backend": "busca_publica",
       "fallback_reason": "INLABS sem documentos para a data"
     }
   },
   "errors": [],
-  "finished_at": "2026-08-12T08:14:45.301309-03:00",
-  "documents_examined": 10244,
+  "finished_at": "2026-08-13T08:15:55.215748-03:00",
+  "documents_examined": 13878,
   "new_matches": 0,
   "stored_items": 4,
   "items_removed_out_of_scope": 0
