@@ -1,16 +1,22 @@
 {
-  "started_at": "2026-08-14T08:25:03.145884-03:00",
-  "reference_date": "2026-08-14",
+  "started_at": "2026-08-15T07:44:32.175716-03:00",
+  "reference_date": "2026-08-15",
   "sources": {
     "dou": {
-      "documents": 17685,
+      "documents": 0,
       "backend": "inlabs",
-      "fallback_reason": null
+      "fallback_reason": "INLABS indisponível durante o login: HTTPSConnectionPool(host='inlabs.in.gov.br', port=443): Max retries exceeded with url: / (Caused by ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')))"
     }
   },
-  "errors": [],
-  "finished_at": "2026-08-14T08:26:34.491252-03:00",
-  "documents_examined": 17685,
+  "errors": [
+    {
+      "source": "dou",
+      "date": "2026-08-15",
+      "error": "INLABS e busca pública do DOU indisponíveis: primário=INLABS indisponível durante o login: HTTPSConnectionPool(host='inlabs.in.gov.br', port=443): Max retries exceeded with url: / (Caused by ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))); fallback=HTTPSConnectionPool(host='www.in.gov.br', port=443): Max retries exceeded with url: /consulta/-/buscar/dou?q=%28%28autoriza+OR+autorizado+OR+autorizada+OR+autorizar%29+AND+%22concurso+p%C3%BAb"
+    }
+  ],
+  "finished_at": "2026-08-15T07:44:40.714620-03:00",
+  "documents_examined": 0,
   "new_matches": 0,
   "stored_items": 4,
   "items_removed_out_of_scope": 0
