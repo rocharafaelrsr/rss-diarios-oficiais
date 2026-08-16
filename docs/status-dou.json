@@ -1,21 +1,15 @@
 {
-  "started_at": "2026-08-15T07:44:32.175716-03:00",
-  "reference_date": "2026-08-15",
+  "started_at": "2026-08-16T07:44:38.204541-03:00",
+  "reference_date": "2026-08-16",
   "sources": {
     "dou": {
       "documents": 0,
-      "backend": "inlabs",
-      "fallback_reason": "INLABS indisponível durante o login: HTTPSConnectionPool(host='inlabs.in.gov.br', port=443): Max retries exceeded with url: / (Caused by ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')))"
+      "backend": "busca_publica",
+      "fallback_reason": "INLABS indisponível durante o login: 502 Server Error: Bad Gateway for url: https://inlabs.in.gov.br/logar.php"
     }
   },
-  "errors": [
-    {
-      "source": "dou",
-      "date": "2026-08-15",
-      "error": "INLABS e busca pública do DOU indisponíveis: primário=INLABS indisponível durante o login: HTTPSConnectionPool(host='inlabs.in.gov.br', port=443): Max retries exceeded with url: / (Caused by ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))); fallback=HTTPSConnectionPool(host='www.in.gov.br', port=443): Max retries exceeded with url: /consulta/-/buscar/dou?q=%28%28autoriza+OR+autorizado+OR+autorizada+OR+autorizar%29+AND+%22concurso+p%C3%BAb"
-    }
-  ],
-  "finished_at": "2026-08-15T07:44:40.714620-03:00",
+  "errors": [],
+  "finished_at": "2026-08-16T07:45:02.191640-03:00",
   "documents_examined": 0,
   "new_matches": 0,
   "stored_items": 4,
