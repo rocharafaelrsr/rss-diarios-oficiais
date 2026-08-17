@@ -1,17 +1,17 @@
 {
-  "started_at": "2026-08-16T07:44:38.204541-03:00",
-  "reference_date": "2026-08-16",
+  "started_at": "2026-08-17T07:52:23.875519-03:00",
+  "reference_date": "2026-08-17",
   "sources": {
     "dou": {
-      "documents": 0,
-      "backend": "busca_publica",
+      "documents": 3650,
+      "backend": "inlabs",
       "fallback_reason": "INLABS indisponível durante o login: 502 Server Error: Bad Gateway for url: https://inlabs.in.gov.br/logar.php"
     }
   },
   "errors": [],
-  "finished_at": "2026-08-16T07:45:02.191640-03:00",
-  "documents_examined": 0,
+  "finished_at": "2026-08-17T07:53:10.225039-03:00",
+  "documents_examined": 3650,
   "new_matches": 0,
-  "stored_items": 4,
+  "stored_items": 5,
   "items_removed_out_of_scope": 0
 }
