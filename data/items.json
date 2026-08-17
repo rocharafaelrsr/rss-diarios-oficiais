@@ -1,5 +1,34 @@
 [
   {
+    "guid": "2111e775b4b129768f249894ece0db6251a5caa030091ad0a63effeb1ad18792",
+    "category": "atub",
+    "category_label": "Concurso ATUB",
+    "priority": 10,
+    "source": "dodf",
+    "source_label": "Diário Oficial do Distrito Federal",
+    "title": "[DODF] Publica edital do concurso ATUB",
+    "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=afb86271-9977-31e0-ae59-86b99234ddbb#page=53",
+    "published_at": "2026-08-17T06:00:00-03:00",
+    "collected_at": "2026-08-17T07:49:17.109172-03:00",
+    "edition": "DODF (SINJ)",
+    "section": "",
+    "page": 53,
+    "excerpt": "Edital nº 01/2022, publicado no DODF nº 237, de 23 de dezembro de 2022, e homologado mediante",
+    "matched_terms": [
+      "edital nº 01/2022",
+      "edital n° 01/2022",
+      "edital n.º 01/2022",
+      "edital 01/2022",
+      "edital nº 1/2022",
+      "edital n° 1/2022",
+      "edital n.º 1/2022",
+      "edital 1/2022"
+    ],
+    "evidence": "Edital nº 01/2022, publicado no DODF nº 237, de 23 de dezembro de 2022, e homologado mediante",
+    "identity": "2111e775b4b129768f249894ece0db6251a5caa030091ad0a63effeb1ad18792",
+    "recollection_key": "f0f0718d3b7d672134c14590a6141c2814d15f88fcbe027693e1364b1fe6ac49"
+  },
+  {
     "guid": "d9c0fc809cc4cb31b8950c84e09daacaaa18b8de7725415046afb96eb8759c27",
     "category": "atub",
     "category_label": "Concurso ATUB",

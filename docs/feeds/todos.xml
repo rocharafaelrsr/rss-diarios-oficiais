@@ -5,9 +5,17 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/todos.xml</link>
     <description>ATUB, LDO e autorizações de concursos no DODF e no DOU.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Sun, 16 Aug 2026 07:44:38 -0300</lastBuildDate>
+    <lastBuildDate>Mon, 17 Aug 2026 07:49:17 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
+    <item>
+      <title>[DODF] Publica edital do concurso ATUB</title>
+      <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=afb86271-9977-31e0-ae59-86b99234ddbb#page=53</link>
+      <guid isPermaLink="false">2111e775b4b129768f249894ece0db6251a5caa030091ad0a63effeb1ad18792</guid>
+      <pubDate>Mon, 17 Aug 2026 06:00:00 -0300</pubDate>
+      <category>Concurso ATUB</category>
+      <description>Edital nº 01/2022, publicado no DODF nº 237, de 23 de dezembro de 2022, e homologado mediante</description>
+    </item>
     <item>
       <title>[DODF] Publica ato relativo ao concurso ATUB</title>
       <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=936abbc6-0761-3674-94b6-3acfd0f400e3#page=28</link>
