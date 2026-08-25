@@ -1,45 +1,45 @@
 {
-  "run_id": "32719157504-1",
-  "started_at": "2026-08-24T07:55:09.300889-03:00",
-  "reference_date": "2026-08-24",
+  "run_id": "32839270327-1",
+  "started_at": "2026-08-25T07:51:16.576533-03:00",
+  "reference_date": "2026-08-25",
   "sources": {
     "dodf": {
       "enabled": true,
-      "documents": 217,
+      "documents": 194,
       "backend": "sinj",
-      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1787540400 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f0dce281310>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1787626800 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fdbc79bc470>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "documents_by_date": {
+        "2026-08-25": 63,
         "2026-08-24": 36,
         "2026-08-23": 0,
         "2026-08-22": 0,
-        "2026-08-21": 95,
-        "2026-08-20": 86
+        "2026-08-21": 95
       },
       "primary_attempts": 1,
       "primary_circuit_open": true,
-      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1787540400 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f0dce281310>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1787626800 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fdbc79bc470>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "primary_skipped_dates": [
+        "2026-08-24",
         "2026-08-23",
         "2026-08-22",
-        "2026-08-21",
-        "2026-08-20"
+        "2026-08-21"
       ],
       "business_days_checked": [
+        "2026-08-25",
         "2026-08-24",
-        "2026-08-21",
-        "2026-08-20"
+        "2026-08-21"
       ],
       "business_days_with_documents": [
+        "2026-08-25",
         "2026-08-24",
-        "2026-08-21",
-        "2026-08-20"
+        "2026-08-21"
       ],
       "healthy": true
     }
   },
   "errors": [],
-  "finished_at": "2026-08-24T07:55:25.135665-03:00",
-  "documents_examined": 217,
+  "finished_at": "2026-08-25T07:51:29.758847-03:00",
+  "documents_examined": 194,
   "new_matches": 0,
   "stored_items": 5,
   "items_removed_out_of_scope": 0,
