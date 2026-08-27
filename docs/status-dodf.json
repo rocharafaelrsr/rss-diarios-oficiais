@@ -1,35 +1,37 @@
 {
-  "run_id": "32960449148-1",
-  "started_at": "2026-08-26T07:52:51.433563-03:00",
-  "reference_date": "2026-08-26",
+  "run_id": "33113830144-1",
+  "started_at": "2026-08-27T17:32:51.708713-03:00",
+  "reference_date": "2026-08-27",
   "sources": {
     "dodf": {
       "enabled": true,
-      "documents": 164,
+      "documents": 253,
       "backend": "sinj",
       "fallback_reason": "fim de semana: portal diário primário não consultado",
       "documents_by_date": {
+        "2026-08-27": 89,
         "2026-08-26": 63,
         "2026-08-25": 65,
         "2026-08-24": 36,
-        "2026-08-23": 0,
-        "2026-08-22": 0
+        "2026-08-23": 0
       },
       "primary_attempts": 1,
       "primary_circuit_open": true,
-      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1787713200 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f7ab89b8110>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1787799600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fcf38b9c3b0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "primary_skipped_dates": [
+        "2026-08-26",
         "2026-08-25",
         "2026-08-24",
-        "2026-08-23",
-        "2026-08-22"
+        "2026-08-23"
       ],
       "business_days_checked": [
+        "2026-08-27",
         "2026-08-26",
         "2026-08-25",
         "2026-08-24"
       ],
       "business_days_with_documents": [
+        "2026-08-27",
         "2026-08-26",
         "2026-08-25",
         "2026-08-24"
@@ -38,8 +40,8 @@
     }
   },
   "errors": [],
-  "finished_at": "2026-08-26T07:53:05.340605-03:00",
-  "documents_examined": 164,
+  "finished_at": "2026-08-27T17:33:10.387067-03:00",
+  "documents_examined": 253,
   "new_matches": 0,
   "stored_items": 5,
   "items_removed_out_of_scope": 0,
