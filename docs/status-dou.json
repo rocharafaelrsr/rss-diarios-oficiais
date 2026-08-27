@@ -1,6 +1,6 @@
 {
-  "started_at": "2026-08-26T07:56:25.578841-03:00",
-  "reference_date": "2026-08-26",
+  "started_at": "2026-08-27T17:36:15.706357-03:00",
+  "reference_date": "2026-08-27",
   "sources": {
     "dou": {
       "documents": 0,
@@ -9,7 +9,7 @@
     }
   },
   "errors": [],
-  "finished_at": "2026-08-26T07:56:53.800708-03:00",
+  "finished_at": "2026-08-27T17:36:40.604984-03:00",
   "documents_examined": 0,
   "new_matches": 0,
   "stored_items": 5,
