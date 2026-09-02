@@ -5,7 +5,7 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/todos.xml</link>
     <description>ATUB, LDO e autorizações de concursos no DODF e no DOU.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Tue, 01 Sep 2026 11:59:24 -0300</lastBuildDate>
+    <lastBuildDate>Wed, 02 Sep 2026 11:31:32 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
     <item>
@@ -15,14 +15,6 @@
       <pubDate>Mon, 31 Aug 2026 06:00:00 -0300</pubDate>
       <category>Publicação da LDO</category>
       <description>A publicação estabelece as diretrizes orçamentárias federal para 2027</description>
-    </item>
-    <item>
-      <title>[DOU] Publica a LDO federal de 2027</title>
-      <link>https://www.in.gov.br/consulta/-/buscar/dou?q=LEI+COMPLEMENTAR+N%C2%BA+235%2C+DE+27+DE+AGOSTO+DE+2026&amp;s=todos&amp;exactDate=personalizado&amp;sortType=0&amp;publishFrom=28-08-2026&amp;publishTo=28-08-2026</link>
-      <guid isPermaLink="false">53902a64a9c78aec20411ca01047a68afe44b0c85431f7db5a80b349e37c3642</guid>
-      <pubDate>Fri, 28 Aug 2026 06:00:00 -0300</pubDate>
-      <category>Publicação da LDO</category>
-      <description>LEI COMPLEMENTAR Nº 235, DE 27 DE AGOSTO DE 2026 estabelece as diretrizes orçamentárias federal para 2027</description>
     </item>
     <item>
       <title>[DODF] Publica edital do concurso ATUB</title>
