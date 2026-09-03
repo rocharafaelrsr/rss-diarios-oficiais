@@ -1,35 +1,37 @@
 {
-  "run_id": "33642587393-1",
-  "started_at": "2026-09-02T11:31:32.768659-03:00",
-  "reference_date": "2026-09-02",
+  "run_id": "33767792477-1",
+  "started_at": "2026-09-03T11:36:11.786568-03:00",
+  "reference_date": "2026-09-03",
   "sources": {
     "dodf": {
       "enabled": true,
-      "documents": 337,
+      "documents": 433,
       "backend": "sinj",
       "fallback_reason": "fim de semana: portal diário primário não consultado",
       "documents_by_date": {
-        "2026-09-02": 154,
+        "2026-09-03": 78,
+        "2026-09-02": 172,
         "2026-09-01": 101,
         "2026-08-31": 82,
-        "2026-08-30": 0,
-        "2026-08-29": 0
+        "2026-08-30": 0
       },
       "primary_attempts": 1,
       "primary_circuit_open": true,
-      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1788318000 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f72ef1c40b0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1788404400 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f08c8a81310>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "primary_skipped_dates": [
+        "2026-09-02",
         "2026-09-01",
         "2026-08-31",
-        "2026-08-30",
-        "2026-08-29"
+        "2026-08-30"
       ],
       "business_days_checked": [
+        "2026-09-03",
         "2026-09-02",
         "2026-09-01",
         "2026-08-31"
       ],
       "business_days_with_documents": [
+        "2026-09-03",
         "2026-09-02",
         "2026-09-01",
         "2026-08-31"
@@ -38,10 +40,10 @@
     }
   },
   "errors": [],
-  "finished_at": "2026-09-02T11:31:51.079731-03:00",
-  "documents_examined": 337,
+  "finished_at": "2026-09-03T11:36:34.845424-03:00",
+  "documents_examined": 433,
   "new_matches": 0,
   "stored_items": 6,
-  "items_removed_out_of_scope": 1,
+  "items_removed_out_of_scope": 0,
   "state_updated": true
 }
