@@ -1,16 +1,16 @@
 {
-  "started_at": "2026-09-05T10:28:53.535345-03:00",
-  "reference_date": "2026-09-05",
+  "started_at": "2026-09-06T10:43:53.482518-03:00",
+  "reference_date": "2026-09-06",
   "sources": {
     "dou": {
-      "documents": 14465,
+      "documents": 10654,
       "backend": "inlabs",
       "fallback_reason": "INLABS sem documentos para a data"
     }
   },
   "errors": [],
-  "finished_at": "2026-09-05T10:30:04.181214-03:00",
-  "documents_examined": 14465,
+  "finished_at": "2026-09-06T10:44:49.795061-03:00",
+  "documents_examined": 10654,
   "new_matches": 0,
   "stored_items": 6,
   "items_removed_out_of_scope": 0
