@@ -1,5 +1,29 @@
 [
   {
+    "guid": "232e1e4b550571bba48ae78202004ff1a38fc2ceb0f199cd1c6c9dd15319b8c2",
+    "category": "ldo",
+    "category_label": "Publicação da LDO",
+    "priority": 10,
+    "source": "dodf",
+    "source_label": "Diário Oficial do Distrito Federal",
+    "title": "[DODF] Publica a LDO do Distrito Federal de 2027",
+    "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=a403dde3-64da-3508-a9c7-19a68d123fe6#page=1",
+    "published_at": "2026-09-08T06:00:00-03:00",
+    "collected_at": "2026-09-08T11:34:20.084686-03:00",
+    "edition": "DODF (SINJ)",
+    "section": "",
+    "page": 1,
+    "excerpt": "A publicação estabelece as diretrizes orçamentárias do Distrito Federal para 2027",
+    "matched_terms": [
+      "dispõe sobre as diretrizes",
+      "diretrizes orçamentárias",
+      "2027"
+    ],
+    "evidence": "LEI Nº 7.938, DE 28 DE JULHO DE 2026 (Autoria: Poder Executivo) Dispõe sobre as diretrizes orçamentárias para o exercício financeiro de 2027 e dá outras providências. O Presidente da Câmara Legislativa do Distrito Federal, nos termos do § 6º do art. 74 da Lei Orgânica do Distrito Federal, promulga os seguintes dispositivos da Lei, mantidos pela Câmara Legislativa do Distrito Federal, oriundos de projeto vetado parcialmente pelo Governador do Distrito Federal: Art. 6º … XXXIV - “Demonstrativo de Projetos em Andamento”, o qual deve apresentar, obrigatoriamente, colunas informativas sobre o valor total de cada projeto, o percentual de execução física e financeira acumulado, a fonte de recursos e a descrição do produto, acompanhada de sua unidade de medida; … XXXVIII - comparativo entre os valores de renúncias de receita estimados para o exercício anterior e os valores efetivamente renunciados no mesmo período, discriminados por tributo, modalidade de benefício e fundamento legal; XXXIX - relatório contendo a avaliação da relação custo-benefício das renúncias de receitas e dos incentivos, remissões, parcelamentos de dívidas, anistias, isenções, subsídios, benefícios e demais instrumentos de natureza financeira, tributária, creditícia e correlatos, com a identificação dos respectivos impactos fiscais, objetivos, resultados alcançados e indicadores de desempenho; XL - “Detalhamento do relatório temático ‘Orçamento Mulheres’, instituído pela Lei nº 7.067, de 17 de fevereiro de 2022”; … XLIII - Demonstrativo dos precatórios judiciais, contendo, no mínimo, os valores inscritos para pagamento no exercício, os valores pagos no exercício anterior e o estoque atualizado da dívida de precatórios do Distrito Federal. Art. 14. … § 2º As receitas diretamente arrecadadas pela utilização de espaço em logradouros públicos e uso de área pública devem ser alocadas na respectiva administração regional. § 3º Nos casos previstos no § 2º, onde o logradouro ou área pública for unidade escolar, a aplicação do recurso deve ser realizada na forma da Lei nº 6.023, de 18 de dezembro de 2017, na respectiva unidade executora. § 4º A destinação das receitas arrecadadas pela conversão de recursos financeiros pela compensação ambiental será utilizada preferencialmente nas regiões administrativas afetadas pelo empreendimento. Art. 27. … § 3º Não constituem impedimento de ordem técnica, para fins do disposto no art. 150, § 16, da Lei Orgânica do Distrito Federal, os casos de: I - ausência de norma regulamentadora para a realização do gasto, quando a edição da norma depender exclusivamente de ato do Poder ou órgão, ou da Defensoria Pública do Distrito Federal; II - óbice que possa ser sanado mediante procedimento ou providência de responsabilidade exclusiva do órgão de execução; III - aleg …",
+    "identity": "232e1e4b550571bba48ae78202004ff1a38fc2ceb0f199cd1c6c9dd15319b8c2",
+    "recollection_key": "9e385bfcb5dff31b76c60ba3c54608e8edafbdf635e75ad448a26c2868bde97a"
+  },
+  {
     "guid": "e855f9338b816922c62b216d7efede6167d45a2f041f4f3cbace8cdf48fcfd71",
     "category": "ldo",
     "category_label": "Publicação da LDO",

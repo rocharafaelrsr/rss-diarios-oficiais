@@ -5,9 +5,17 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/todos.xml</link>
     <description>ATUB, LDO e autorizações de concursos no DODF e no DOU.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Mon, 07 Sep 2026 12:55:21 -0300</lastBuildDate>
+    <lastBuildDate>Tue, 08 Sep 2026 11:34:20 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
+    <item>
+      <title>[DODF] Publica a LDO do Distrito Federal de 2027</title>
+      <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=a403dde3-64da-3508-a9c7-19a68d123fe6#page=1</link>
+      <guid isPermaLink="false">232e1e4b550571bba48ae78202004ff1a38fc2ceb0f199cd1c6c9dd15319b8c2</guid>
+      <pubDate>Tue, 08 Sep 2026 06:00:00 -0300</pubDate>
+      <category>Publicação da LDO</category>
+      <description>A publicação estabelece as diretrizes orçamentárias do Distrito Federal para 2027</description>
+    </item>
     <item>
       <title>[DOU] Publica a LDO federal de 2027</title>
       <link>https://www.in.gov.br/consulta/-/buscar/dou?q=DESPACHOS+DO+PRESIDENTE+DA+REP%C3%9ABLICA&amp;s=todos&amp;exactDate=personalizado&amp;sortType=0&amp;publishFrom=31-08-2026&amp;publishTo=31-08-2026</link>
