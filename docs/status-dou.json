@@ -1,16 +1,16 @@
 {
-  "started_at": "2026-09-10T11:31:07.803110-03:00",
-  "reference_date": "2026-09-10",
+  "started_at": "2026-09-11T11:30:48.933897-03:00",
+  "reference_date": "2026-09-11",
   "sources": {
     "dou": {
-      "documents": 10294,
+      "documents": 0,
       "backend": "busca_publica",
-      "fallback_reason": "INLABS sem documentos para a data"
+      "fallback_reason": "INLABS indisponível durante o login: HTTPSConnectionPool(host='inlabs.in.gov.br', port=443): Max retries exceeded with url: / (Caused by ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')))"
     }
   },
   "errors": [],
-  "finished_at": "2026-09-10T11:32:00.128713-03:00",
-  "documents_examined": 10294,
+  "finished_at": "2026-09-11T11:33:12.669761-03:00",
+  "documents_examined": 0,
   "new_matches": 0,
   "stored_items": 7,
   "items_removed_out_of_scope": 0
