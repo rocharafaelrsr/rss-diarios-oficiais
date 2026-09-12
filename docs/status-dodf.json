@@ -1,35 +1,34 @@
 {
-  "run_id": "34610234826-1",
-  "started_at": "2026-09-11T11:27:43.974161-03:00",
-  "reference_date": "2026-09-11",
+  "run_id": "34696920626-1",
+  "started_at": "2026-09-12T10:37:17.952695-03:00",
+  "reference_date": "2026-09-12",
   "sources": {
     "dodf": {
       "enabled": true,
       "documents": 376,
       "backend": "sinj",
-      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1789095600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fed63697f80>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "fallback_reason": "circuito primário aberto: HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1789095600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f2f4aaad100>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "documents_by_date": {
+        "2026-09-12": 0,
         "2026-09-11": 107,
         "2026-09-10": 91,
         "2026-09-09": 64,
-        "2026-09-08": 114,
-        "2026-09-07": 0
+        "2026-09-08": 114
       },
       "primary_attempts": 1,
       "primary_circuit_open": true,
-      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1789095600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fed63697f80>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1789095600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7f2f4aaad100>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "primary_skipped_dates": [
+        "2026-09-12",
         "2026-09-10",
         "2026-09-09",
-        "2026-09-08",
-        "2026-09-07"
+        "2026-09-08"
       ],
       "business_days_checked": [
         "2026-09-11",
         "2026-09-10",
         "2026-09-09",
-        "2026-09-08",
-        "2026-09-07"
+        "2026-09-08"
       ],
       "business_days_with_documents": [
         "2026-09-11",
@@ -41,7 +40,7 @@
     }
   },
   "errors": [],
-  "finished_at": "2026-09-11T11:28:05.704008-03:00",
+  "finished_at": "2026-09-12T10:37:39.399925-03:00",
   "documents_examined": 376,
   "new_matches": 1,
   "stored_items": 7,
