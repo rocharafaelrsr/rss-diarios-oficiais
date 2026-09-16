@@ -1,17 +1,17 @@
 {
-  "started_at": "2026-09-15T12:05:58.785843-03:00",
-  "reference_date": "2026-09-15",
+  "started_at": "2026-09-16T12:02:29.604735-03:00",
+  "reference_date": "2026-09-16",
   "sources": {
     "dou": {
       "documents": 0,
       "backend": "busca_publica",
-      "fallback_reason": "INLABS indisponível durante o login: 502 Server Error: Bad Gateway for url: https://inlabs.in.gov.br/logar.php"
+      "fallback_reason": "INLABS indisponível durante o login: HTTPSConnectionPool(host='inlabs.in.gov.br', port=443): Max retries exceeded with url: / (Caused by ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')))"
     }
   },
   "errors": [],
-  "finished_at": "2026-09-15T12:06:44.937427-03:00",
+  "finished_at": "2026-09-16T12:04:29.188865-03:00",
   "documents_examined": 0,
   "new_matches": 0,
-  "stored_items": 7,
+  "stored_items": 8,
   "items_removed_out_of_scope": 0
 }
