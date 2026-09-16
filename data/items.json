@@ -1,5 +1,28 @@
 [
   {
+    "guid": "d5c8694d32862dac89972397a6a6bcc2ea8a4cc91ea703d6adcae9f6a2663d93",
+    "category": "atub",
+    "category_label": "Concurso ATUB",
+    "priority": 10,
+    "source": "dodf",
+    "source_label": "Diário Oficial do Distrito Federal",
+    "title": "[DODF] Publica edital do concurso ATUB",
+    "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=7577194e-f22b-3489-a2b0-ffe3ca8e4656#page=76",
+    "published_at": "2026-09-16T06:00:00-03:00",
+    "collected_at": "2026-09-16T11:59:46.893385-03:00",
+    "edition": "DODF (SINJ)",
+    "section": "",
+    "page": 76,
+    "excerpt": "EDITAL DE CONCURSO PÚBLICO Nº 55/2026 - ATUB EXCLUSÃO DA CONDIÇÃO SUB JUDICE DE CANDIDATO O SECRETÁRIO DE ESTADO DE ECONOMIA DO DISTRITO FEDERAL, no uso de suas atribuições legais, em conformidade com os dispositivos da Constituição Federal, da Lei Complementar nº 840, de 23 de dezembro de 2011, da",
+    "matched_terms": [
+      "concurso público",
+      " atub "
+    ],
+    "evidence": "EDITAL DE CONCURSO PÚBLICO Nº 55/2026 - ATUB EXCLUSÃO DA CONDIÇÃO SUB JUDICE DE CANDIDATO O SECRETÁRIO DE ESTADO DE ECONOMIA DO DISTRITO FEDERAL, no uso de suas atribuições legais, em conformidade com os dispositivos da Constituição Federal, da Lei Complementar nº 840, de 23 de dezembro de 2011, da",
+    "identity": "d5c8694d32862dac89972397a6a6bcc2ea8a4cc91ea703d6adcae9f6a2663d93",
+    "recollection_key": "cc1e739636f953c2f203c5286e9d9118c0900448cf3926b2726aade3daebed2c"
+  },
+  {
     "guid": "232e1e4b550571bba48ae78202004ff1a38fc2ceb0f199cd1c6c9dd15319b8c2",
     "category": "ldo",
     "category_label": "Publicação da LDO",
