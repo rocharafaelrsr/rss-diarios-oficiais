@@ -1,5 +1,34 @@
 [
   {
+    "guid": "f74082b90cc13fe69d59638db38ca0a3881565d8b3ad608226ab56f735a9aa57",
+    "category": "atub",
+    "category_label": "Concurso ATUB",
+    "priority": 10,
+    "source": "dodf",
+    "source_label": "Diário Oficial do Distrito Federal",
+    "title": "[DODF] Nomeia aprovados no concurso ATUB",
+    "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=6df52ab1-235a-3c32-bf7d-6ab63aa08615#page=32",
+    "published_at": "2026-09-17T06:00:00-03:00",
+    "collected_at": "2026-09-17T12:02:57.347378-03:00",
+    "edition": "DODF (SINJ)",
+    "section": "",
+    "page": 32,
+    "excerpt": "NOMEAR MARIANA BORGES DA COSTA AGUIAR, Delegada de Polícia, matrícula 240.537-7, para exercer o Cargo Público de Natureza Especial, Símbolo CPE-08, SIGRH 03101894, de Diretor, da Divisão de Análise Técnica e Estatística, do Departamento de Inteligência e Gestão da Informação, da Polícia Civil do…",
+    "matched_terms": [
+      "edital nº 01/2022",
+      "edital n° 01/2022",
+      "edital n.º 01/2022",
+      "edital 01/2022",
+      "edital nº 1/2022",
+      "edital n° 1/2022",
+      "edital n.º 1/2022",
+      "edital 1/2022"
+    ],
+    "evidence": "DODF (SINJ) — página 32 NOMEAR MARIANA BORGES DA COSTA AGUIAR, Delegada de Polícia, matrícula 240.537-7, para exercer o Cargo Público de Natureza Especial, Símbolo CPE-08, SIGRH 03101894, de Diretor, da Divisão de Análise Técnica e Estatística, do Departamento de Inteligência e Gestão da Informação, da Polícia Civil do Distrito Federal. CELINA LEÃO RETIFICAÇÃO No Decreto de 03 de julho de 2026, publicado na Edição Extra nº 67-A, de 03 de julho de 2026, no ato de nomeação para o cargo de Agente de Vigilância Ambiental em Saúde (AVAS), da carreira Vigilância Ambiental e Atenção Comunitária à Saúde, referente ao concurso público objeto do Edital nº 01/2022, publicado no DODF nº 237, de 23 de dezembro de 2022, com resultado final homologado pelo Edital nº 07/2023, publicado no DODF nº 239, de 22 de dezembro de 2023, na lista de Ampla Concorrência (AC), ONDE SE LÊ: “ANDRÉ LUCAS GETRUDES DE FRANÇA, ***.622.791-**, 416ª”; LEIA-SE: “ANDRÉ LUCAS GERTRUDES DE FRANÇA, ***.622.791-**, 416ª”. No Decreto de 03 de julho de 2026, publicado na Edição Extra nº 67-A, de 03 de julho de 2026, no ato de nomeação para o cargo de Agente Comunitário de Saúde (ACS), da carreira Vigilância Ambiental e Atenção Comunitária à Saúde, referente ao concurso público objeto do Edital nº 01/2022, publicado no DODF nº 237, de 23 de dezembro de 2022, com resultado final homologado pelo Edital nº 07/2023, publicado no DODF nº 239, de 22 de dezembro de 2023, na lista de Ampla Concorrência (AC), ONDE SE LÊ: “ANDRÉ LUCAS GETRUDES DE FRANÇA, ***.622.791-**, 37ª”; LEIA-SE: “ANDRÉ LUCAS GERTRUDES DE FRANÇA, ***.622.791-**, 37ª”. DESPACHO DA GOVERNADORA Em 16 de setembro de 2026 Processo SEI-GDF: 04043-00001084/2026-09. Interessado: VICE-GOVERNADORIA. Assunto: SUSPENSÃO DE FÉRIAS. I - SUSPENDO, por imperiosa necessidade de serviço, a contar de 15 de setembro de 2026, as férias do Chefe de Gabinete, do Gabinete da Vice-Governadoria, RAIMUNDO HOSANO DE SOUSA JUNIOR, matrícula 17269113, programadas para o período de 14 de setembro de 2026 a 03 de outubro de 2026, assegurando-lhe o direito à fruição do período remanescente, a ser marcado oportunamente. II - Após publicação, encaminhe-se à Vice-Governadoria para ciência e adoção das providências pertinentes. CELINA LEÃO GABINETE DA VICE-GOVERNADORIA SUBSECRETARIA DE ADMINISTRAÇÃO GERAL",
+    "identity": "f74082b90cc13fe69d59638db38ca0a3881565d8b3ad608226ab56f735a9aa57",
+    "recollection_key": "0ae7493783e3afc3f1de6380353c7e4eda78c27f8a1fc6c4c20d55b8fdbcd4a7"
+  },
+  {
     "guid": "d5c8694d32862dac89972397a6a6bcc2ea8a4cc91ea703d6adcae9f6a2663d93",
     "category": "atub",
     "category_label": "Concurso ATUB",
@@ -9,7 +38,7 @@
     "title": "[DODF] Publica edital do concurso ATUB",
     "link": "https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=7577194e-f22b-3489-a2b0-ffe3ca8e4656#page=76",
     "published_at": "2026-09-16T06:00:00-03:00",
-    "collected_at": "2026-09-16T11:59:46.893385-03:00",
+    "collected_at": "2026-09-17T12:02:57.347378-03:00",
     "edition": "DODF (SINJ)",
     "section": "",
     "page": 76,

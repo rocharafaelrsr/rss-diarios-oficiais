@@ -1,35 +1,37 @@
 {
-  "run_id": "35112270842-1",
-  "started_at": "2026-09-16T11:59:46.893385-03:00",
-  "reference_date": "2026-09-16",
+  "run_id": "35237629238-1",
+  "started_at": "2026-09-17T12:02:57.347378-03:00",
+  "reference_date": "2026-09-17",
   "sources": {
     "dodf": {
       "enabled": true,
-      "documents": 264,
+      "documents": 344,
       "backend": "sinj",
       "fallback_reason": "fim de semana: portal diário primário não consultado",
       "documents_by_date": {
+        "2026-09-17": 80,
         "2026-09-16": 92,
         "2026-09-15": 95,
         "2026-09-14": 77,
-        "2026-09-13": 0,
-        "2026-09-12": 0
+        "2026-09-13": 0
       },
       "primary_attempts": 1,
       "primary_circuit_open": true,
-      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1789527600 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fc8206e86b0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
+      "primary_circuit_reason": "HTTPSConnectionPool(host='dodf.df.gov.br', port=443): Max retries exceeded with url: /dodf/jornal/diario?data=1789614000 (Caused by ConnectTimeoutError(<HTTPSConnection(host='dodf.df.gov.br', port=443) at 0x7fef27fb56a0>, 'Connection to dodf.df.gov.br timed out. (connect timeout=3)'))",
       "primary_skipped_dates": [
+        "2026-09-16",
         "2026-09-15",
         "2026-09-14",
-        "2026-09-13",
-        "2026-09-12"
+        "2026-09-13"
       ],
       "business_days_checked": [
+        "2026-09-17",
         "2026-09-16",
         "2026-09-15",
         "2026-09-14"
       ],
       "business_days_with_documents": [
+        "2026-09-17",
         "2026-09-16",
         "2026-09-15",
         "2026-09-14"
@@ -38,10 +40,10 @@
     }
   },
   "errors": [],
-  "finished_at": "2026-09-16T12:00:02.794412-03:00",
-  "documents_examined": 264,
-  "new_matches": 1,
-  "stored_items": 8,
+  "finished_at": "2026-09-17T12:03:16.660735-03:00",
+  "documents_examined": 344,
+  "new_matches": 2,
+  "stored_items": 9,
   "items_removed_out_of_scope": 0,
   "state_updated": true
 }

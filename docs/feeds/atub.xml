@@ -5,9 +5,17 @@
     <link>https://raw.githubusercontent.com/rocharafaelrsr/rss-diarios-oficiais/main/docs/feeds/atub.xml</link>
     <description>Atos relativos aos concursos da carreira Auditoria de Atividades Urbanas.</description>
     <language>pt-BR</language>
-    <lastBuildDate>Wed, 16 Sep 2026 12:02:29 -0300</lastBuildDate>
+    <lastBuildDate>Thu, 17 Sep 2026 12:02:57 -0300</lastBuildDate>
     <generator>rss-diarios-oficiais/1.1</generator>
     <ttl>60</ttl>
+    <item>
+      <title>[DODF] Nomeia aprovados no concurso ATUB</title>
+      <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=6df52ab1-235a-3c32-bf7d-6ab63aa08615#page=32</link>
+      <guid isPermaLink="false">f74082b90cc13fe69d59638db38ca0a3881565d8b3ad608226ab56f735a9aa57</guid>
+      <pubDate>Thu, 17 Sep 2026 06:00:00 -0300</pubDate>
+      <category>Concurso ATUB</category>
+      <description>NOMEAR MARIANA BORGES DA COSTA AGUIAR, Delegada de Polícia, matrícula 240.537-7, para exercer o Cargo Público de Natureza Especial, Símbolo CPE-08, SIGRH 03101894, de Diretor, da Divisão de Análise Técnica e Estatística, do Departamento de Inteligência e Gestão da Informação, da Polícia Civil do…</description>
+    </item>
     <item>
       <title>[DODF] Publica edital do concurso ATUB</title>
       <link>https://www.sinj.df.gov.br/sinj/BaixarArquivoDiario.aspx?id_file=7577194e-f22b-3489-a2b0-ffe3ca8e4656#page=76</link>
